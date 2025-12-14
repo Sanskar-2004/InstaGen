@@ -1,0 +1,18 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+# Pillow 10.x may not have wheels for newer Python versions on Windows; use a newer compatible release
+pillow>=11.3.0
+python-multipart==0.0.6
+# Torch: leave unpinned so pip can pick a compatible wheel for your Python version.
+# For GPU support, install the appropriate CUDA wheel from pytorch.org if needed.
+torch
+# Let pip choose a compatible numpy wheel for your Python version
+numpy
+# Use latest rembg for compatibility with modern Python
+rembg
+aiofiles==23.2.1
+diffusers>=0.20.0
+transformers>=4.35.0
+accelerate>=0.20.3
+safetensors>=0.3.0
+

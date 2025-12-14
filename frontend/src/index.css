@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. Global Reset & Fonts */
+html {
+  background-color: #f8fafc;
+  color: #1f2937;
+}
+
+html.dark {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  overflow: hidden; /* Prevents window-level scrolling */
+}
+
+html.dark body {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* Canvas and content areas keep white background for professionalism */
+.dark canvas,
+canvas {
+  background-color: white !important;
+}
+
+/* CRITICAL: Prevent dark mode from affecting canvas */
+.dark #main-fabric-canvas,
+#main-fabric-canvas {
+  background-color: #f5f5f5 !important;
+  background: #f5f5f5 !important;
+  color-scheme: light !important;
+}
+
+.dark canvas.lower-canvas,
+canvas.lower-canvas {
+  background-color: #f5f5f5 !important;
+}
+
+.dark canvas.upper-canvas,
+canvas.upper-canvas {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* 2. CUSTOM SCROLLBARS (The "SaaS" Look) */
+/* Apply this class to any scrollable container */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* Slate-300 */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* Slate-400 */
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Canvas Section Scrollbar Styling */
+.canvas-scrollable::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.canvas-scrollable::-webkit-scrollbar-track {
+  background: #e5e7eb; /* Gray-200 */
+  border-radius: 4px;
+}
+
+.canvas-scrollable::-webkit-scrollbar-thumb {
+  background-color: #9ca3af; /* Gray-400 */
+  border-radius: 4px;
+  border: 2px solid #e5e7eb;
+}
+
+.canvas-scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280; /* Gray-500 */
+}
+
+/* Firefox scrollbar for canvas */
+.canvas-scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #e5e7eb;
+}
+
+/* 3. FABRIC JS CRITICAL OVERRIDES (Do Not Remove) */
+/* These ensure the canvas is visible and interactive */
+
+.canvas-container {
+    position: relative !important;
+    z-index: 10 !important;
+    display: block !important;
+    visibility: visible !important;
+    /* Center the canvas wrapper visually if needed */
+    margin: 0 auto; 
+}
+
+.upper-canvas {
+    z-index: 20 !important;
+    pointer-events: auto !important; /* Enables object selection */
+    visibility: visible !important;
+    cursor: default;
+}
+
+#main-fabric-canvas {
+    z-index: 10 !important;
+    visibility: visible !important;
+}
+
+/* 4. UTILITY ANIMATIONS */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+/* FORCE FABRIC OVERRIDES */
+/* This must come AFTER Tailwind to override preflight resets */
+.canvas-container { 
+    background: none !important; 
+    position: relative !important;
+}
+
+.canvas-container canvas { 
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    /* CRITICAL: Tailwind/Bootstrap resets break canvas scaling */
+    max-width: none !important; 
+    max-height: none !important; 
+    
+    /* CRITICAL: Fabric needs content-box to calculate pixels correctly */
+    box-sizing: content-box !important; 
+    
+    /* Ensure visual layer is visible */
+    opacity: 1 !important;
+    visibility: visible !important;
+    
+    /* Fix for GPU glitches */
+    transform: none !important;
+}
+
+/* --- FABRIC.JS PERMANENT FIX --- */
+
+/* 1. Force the top interaction layer to be transparent */
+.canvas-container canvas.upper-canvas {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* 2. Ensure the container doesn't force a background */
+.canvas-container {
+    background: none !important;
+}
+
+/* 3. Stop Tailwind/Bootstrap from forcing width/height on the element */
+.canvas-container canvas {
+    max-width: none !important;
+    max-height: none !important;
+}
