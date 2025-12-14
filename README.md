@@ -1,208 +1,216 @@
-# InstaGen
+# 🎨 InstaGen - Fabric.js Canvas Editor
 
-A full-stack Instagram content creation tool with a FastAPI backend and React frontend. Create professional product shots with AI-powered background generation, compliance checking, and export optimization.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-18.2.0-61dafb?logo=react)
+![Vite](https://img.shields.io/badge/Vite-5.0-646cff?logo=vite)
+![Fabric.js](https://img.shields.io/badge/Fabric.js-5.3.0-f1672f)
+![Tailwind](https://img.shields.io/badge/Tailwind%20CSS-3.3.6-38b2ac?logo=tailwind-css)
 
-## Project Structure
+A professional **React-based canvas editor** with **Fabric.js**, featuring dark mode support, social safe zones, and high-quality image export. Perfect for creating Instagram Stories, Reels, and social media content.
+
+## ✨ Key Features
+
+### 🎨 Canvas Tools
+- ✏️ **Text Editor** - Add and edit text with live preview
+- ▭ **Rectangle Tool** - Draw rectangles with custom colors
+- ● **Circle Tool** - Create circles and adjust size
+- 🗑️ **Delete & Clear** - Remove individual objects or clear entire canvas
+
+### 🌓 Dark Mode
+- 🌙 **Toggle Switch** - Easy dark/light mode switching
+- 💾 **Persistent** - Saves preference in localStorage
+- 🎨 **Adaptive Colors** - All UI elements respond to theme
+
+### 📱 Social Safe Zones
+- **9x16 Format (1080x1920)** - Instagram Stories/Reels compliance
+- **200px Top + 250px Bottom** - Safe zone indicators
+- **1470px Safe Area** - Center content zone
+
+### 📥 Export & Download
+- 📸 **PNG/JPEG Export** - Multiple formats
+- 📐 **Size Presets**: Story (1080×1920), Square (1080×1080), Preview (500×500)
+- 💡 **Professional Output** - Always exports with optimal background
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js** 16+ ([Download](https://nodejs.org/))
+- **Git** ([Download](https://git-scm.com/))
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Sanskar-2004/InstaGen.git
+cd InstaGen
+
+# 2. Install dependencies
+cd frontend
+npm install
+
+# 3. Start development server
+npm run dev
+
+# 4. Open in browser
+# http://localhost:3002
+```
+
+### Build for Production
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 InstaGen/
-├── backend/                  # FastAPI Python backend
-│   ├── main.py              # FastAPI app entry point
-│   ├── routers/             # API route handlers
-│   ├── services/            # Business logic (image processing, generative AI, compliance)
-│   ├── database.py          # SQLite initialization
-│   ├── requirements.txt      # Python dependencies
-│   └── venv/                # Python virtual environment
-├── frontend/                # React + Vite frontend
+├── frontend/
 │   ├── src/
-│   │   ├── components/      # React components (CanvasEditor, Sidebar, etc.)
+│   │   ├── components/
+│   │   │   ├── CanvasEditor.jsx          # Main canvas component
+│   │   │   ├── DarkModeToggle.jsx        # Theme switcher
+│   │   │   └── layout/
+│   │   │       ├── EditorLayout.jsx
+│   │   │       ├── LeftSidebar.jsx
+│   │   │       └── RightSidebar.jsx
+│   │   ├── hooks/useDarkMode.js
+│   │   ├── utils/updateCanvasTheme.js
 │   │   ├── App.jsx
-│   │   └── main.jsx
+│   │   └── index.css
 │   ├── package.json
-│   └── vite.config.js
-├── start_app.bat            # Windows startup script
-├── start_app.sh             # Mac/Linux startup script
-└── README.md                # This file
+│   ├── vite.config.js
+│   └── tailwind.config.js
+├── README.md
+└── SOURCE_CODE_COMPLETE.md
 ```
 
-## Quick Start
+---
 
-### Prerequisites
+## 🛠️ Tech Stack
 
-- **Python 3.12+** (64-bit) with pip
-- **Node.js 18+** with npm
-- **Git** (optional)
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 18.2.0 | UI Framework |
+| **Vite** | 5.0 | Build Tool |
+| **Fabric.js** | 5.3.0 | Canvas Library |
+| **Tailwind CSS** | 3.3.6 | Styling |
+| **Lucide React** | 0.561.0 | Icons |
 
-### Windows
+---
 
-1. **Run the startup script:**
-   ```bash
-   start_app.bat
-   ```
-   This will open two terminal windows:
-   - Backend running on `http://localhost:8000`
-   - Frontend running on `http://localhost:3000`
+## 💡 Usage
 
-2. **Manual startup** (if preferred):
-   ```bash
-   # Terminal 1: Backend
-   cd backend
-   venv\Scripts\activate
-   python -m uvicorn main:app --reload
+### Adding Text
+1. Click **+ Text** button
+2. Text appears on canvas
+3. Double-click to edit
 
-   # Terminal 2: Frontend
-   cd frontend
-   npm run dev
-   ```
+### Drawing Shapes
+1. Click **+ Rect** or **+ Circle**
+2. Shape appears with colors that adapt to dark mode
 
-### Mac/Linux
+### Safe Zones
+1. Click **🎯 Safe Zones ON/OFF**
+2. Red overlays show unsafe areas
+3. Perfect for Instagram Stories
 
-1. **Run the startup script:**
-   ```bash
-   chmod +x start_app.sh
-   ./start_app.sh
-   ```
+### Exporting
+1. Open **Export** panel
+2. Choose format & size
+3. Click **Download Design ⬇**
 
-2. **Manual startup** (if preferred):
-   ```bash
-   # Terminal 1: Backend
-   cd backend
-   source venv/bin/activate
-   python -m uvicorn main:app --reload
+### Dark Mode
+1. Click **🌙 Dark** or **☀️ Light** button
+2. Entire UI adapts
+3. Preference saves automatically
 
-   # Terminal 2: Frontend
-   cd frontend
-   npm run dev
-   ```
+---
 
-## Backend Setup (First Time)
+## 📱 Social Safe Zones
 
-If the backend hasn't been set up yet:
-
-```bash
-cd backend
-
-# Create virtual environment (Windows)
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-
-# Create virtual environment (Mac/Linux)
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+For Instagram Stories/Reels (9:16):
+```
+┌─────────────────────────────────┐
+│  ⚠️  200px - UNSAFE TOP         │ (Red overlay)
+├─────────────────────────────────┤
+│                                 │
+│      ✅ 1470px - SAFE AREA      │
+│                                 │
+├─────────────────────────────────┤
+│  ⚠️  250px - UNSAFE BOTTOM      │ (Red overlay)
+└─────────────────────────────────┘
 ```
 
-## Frontend Setup (First Time)
+---
 
-If the frontend dependencies haven't been installed:
+## 🐛 Troubleshooting
 
-```bash
-cd frontend
-npm install
-```
+| Issue | Solution |
+|-------|----------|
+| Canvas not visible | Toggle dark mode or refresh (Ctrl+R) |
+| Port 3002 in use | Kill the process or use different port |
+| Dependencies not installed | Run `npm install` in frontend folder |
+| Dark mode not saving | Check if localStorage is enabled |
 
-## Features
+---
 
-### Backend (FastAPI)
-- **Image Processing**: Background removal, optimization, format conversion
-- **Generative AI**: SDXL Turbo background generation with product compositing
-- **Compliance Checking**: Ad copy validation against retail regulations
-- **Export Optimization**: Automatic image compression for <500KB file sizes
-- **RESTful API**: Full CORS support for frontend communication
+## 📚 Documentation
 
-### Frontend (React + Vite)
-- **Canvas Editor**: Fabric.js-powered 9:16 canvas with safe zones
-- **Constraint-Aware Design**: Locked value tiles, safe zones, snap-back constraints
-- **Real-time Validation**: Headline compliance checking with visual feedback
-- **Alcohol Mode**: Automatic Drinkaware logo injection for alcoholic products
-- **Asset Management**: Upload, remove background, and manage product images
-- **Export Pipeline**: Download optimized images with compliance validation
+- **[Full Source Code](./SOURCE_CODE_COMPLETE.md)** - Complete documentation
+- **[GitHub Upload Guide](./GITHUB_UPLOAD_GUIDE.md)** - Deployment guide
 
-## API Endpoints
+---
 
-### Assets
-- `POST /assets/upload-asset` - Upload and process image
-- `POST /assets/remove-background` - Remove background from image
-- `POST /assets/generate-bg` - Generate background and composite product
-- `GET /assets/uploaded/{file_id}` - Retrieve processed asset
-- `GET /assets/list` - List all uploaded assets
-- `DELETE /assets/delete/{file_id}` - Delete an asset
+## 🤝 Contributing
 
-### Compliance
-- `POST /check-text` - Validate ad copy for compliance
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Export
-- `POST /export/export-final` - Optimize and export image
+---
 
-### Other
-- `GET /health` - Health check endpoint
+## 📄 License
 
-## Development
+MIT License - You are free to use, modify, and distribute.
 
-### Backend Development
-```bash
-cd backend
-source venv/bin/activate  # Mac/Linux
-# or venv\Scripts\activate  # Windows
-python -m uvicorn main:app --reload
-```
+---
 
-The `--reload` flag enables hot-reload on file changes.
+## 📊 Project Stats
 
-### Frontend Development
-```bash
-cd frontend
-npm run dev
-```
+![GitHub Repo Size](https://img.shields.io/github/repo-size/Sanskar-2004/InstaGen)
+![GitHub License](https://img.shields.io/github/license/Sanskar-2004/InstaGen)
+![Last Commit](https://img.shields.io/github/last-commit/Sanskar-2004/InstaGen/main)
 
-The Vite dev server provides instant HMR (Hot Module Replacement).
+---
 
-## Configuration
+## 📞 Support
 
-### Backend
-- Database: SQLite (`database.db`)
-- Uploads folder: `backend/uploads/`
-- Processed assets: `backend/uploads/processed/`
-- Port: `8000` (default)
+- 📧 **Issues**: [GitHub Issues](https://github.com/Sanskar-2004/InstaGen/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Sanskar-2004/InstaGen/discussions)
+- 👤 **Author**: [Sanskar-2004](https://github.com/Sanskar-2004)
 
-### Frontend
-- Port: `3000` (default, managed by Vite)
-- Proxy to backend: `/api/*` → `http://localhost:8000/*`
+---
 
-## Technologies
+## 🎯 Getting Help
 
-### Backend
-- **FastAPI** - Modern async web framework
-- **Uvicorn** - ASGI server
-- **Pillow** - Image processing
-- **Diffusers** - SDXL text-to-image (optional, fallback placeholder available)
-- **SQLite** - Lightweight database
+**Something not working?**
 
-### Frontend
-- **React 18** - UI library
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first styling
-- **Fabric.js** - Canvas manipulation
-- **Axios** - HTTP client
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Search [existing issues](https://github.com/Sanskar-2004/InstaGen/issues)
+3. Read the [Full Documentation](./SOURCE_CODE_COMPLETE.md)
+4. [Create a new issue](https://github.com/Sanskar-2004/InstaGen/issues/new)
 
-## Troubleshooting
+---
 
-### Backend won't start
-- Ensure Python 3.12+ is installed and in PATH
-- Check that `venv` is activated
-- Verify all dependencies are installed: `pip install -r requirements.txt`
+**Made with ❤️ by [Sanskar-2004](https://github.com/Sanskar-2004)**
 
-### Frontend won't start
-- Ensure Node.js 18+ is installed
-- Delete `node_modules` and run `npm install` again
-- Check that port 3000 is not in use
+**Last Updated**: December 15, 2025 | **Version**: 1.0.0 | **Repository**: [InstaGen](https://github.com/Sanskar-2004/InstaGen)
 
-### API calls failing
-- Ensure backend is running on `http://localhost:8000`
-- Check browser console for CORS errors
-- Verify frontend proxy config in `vite.config.js`
-
-## License
-
-© 2025 InstaGen. All rights reserved.
+[⬆ Back to Top](#-instagen---fabricjs-canvas-editor)
