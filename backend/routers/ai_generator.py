@@ -41,6 +41,7 @@ class LogoRequest(BaseModel):
     brand_name: str
     style: str = "Modern"
     styles: list = None  # For mix & match: array of selected styles
+    background: str = None  # Optional for backwards compatibility
     model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
 
 # --- CATEGORIZED STYLE SYSTEM ---
@@ -218,14 +219,7 @@ async def generate_logo(request: LogoRequest):
             all_keywords.append(keywords)
         style_keywords = ", ".join(all_keywords)
         
-        # Determine background prompt
-        bg_prompt = "centered on solid dark slate background"
-        if request.background == "Light":
-            bg_prompt = "centered on pure clean white background"
-        elif request.background == "Transparent":
-            bg_prompt = "isolated vector icon on pure white background, no surrounding frame"
-            
-        logger.info(f"🎨 LOGO GENERATION: Creating logo for '{request.brand_name}' with styles: {style_names} | Background: {request.background}")
+        logger.info(f"🎨 LOGO GENERATION: Creating logo for '{request.brand_name}' with styles: {style_names}")
         
         optimized_prompt = None
         used_gemini_api = False
@@ -236,13 +230,10 @@ async def generate_logo(request: LogoRequest):
                 gemini_prompt = f"""Generate ONLY a detailed single-line image generation prompt for a vector logo mark composed of the brand name / letters "{request.brand_name}".
 Brand Name / Letters: {request.brand_name}
 Mixed Styles: {style_names}
-Style Characteristics: {style_keywords}
-Background Setting: {request.background} ({bg_prompt})
 
 Requirements:
 - The logo MUST be a monogram / initial logo mark created of the letters "{request.brand_name}"
 - Seamlessly blend all specified styles ({style_names}) together
-- Background MUST match: {bg_prompt}
 - DO NOT add extra text underneath
 - ONE LINE ONLY, no preamble or extra commentary
 
