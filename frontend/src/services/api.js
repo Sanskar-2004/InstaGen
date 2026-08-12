@@ -453,21 +453,58 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], backg
   })
 }
 
+// --- CATEGORIZED STYLE MIXING SYSTEM ---
+const STYLE_CATEGORIES = {
+  "Modern": { form: "minimalist geometric", technique: "flat vector design", mood: "sleek modern" },
+  "Vintage": { form: "rounded retro badge", technique: "solid shape linework", mood: "nostalgic classic 70s" },
+  "Minimalist": { form: "stark minimal line", technique: "negative space", mood: "clean icon-like" },
+  "Luxury": { form: "elegant ornamental", technique: "gold metallic gradient", mood: "luxurious upscale" },
+  "Tech": { form: "angular cyber geometric", technique: "neon line art", mood: "futuristic tech-forward" },
+  "Playful": { form: "rounded bubble", technique: "vibrant multi-color gradient", mood: "cheerful playful" },
+  "Organic": { form: "flowing botanical curve", technique: "eco line art", mood: "natural sustainable" },
+  "Abstract": { form: "abstract expressionist", technique: "negative space geometry", mood: "creative artistic" },
+  "3D": { form: "dimensional sculptural", technique: "3D realistic shading depth", mood: "bold contemporary" },
+  "Sports": { form: "dynamic angular shield", technique: "athletic line work", mood: "bold energetic" }
+}
+
+function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
+  const forms = new Set()
+  const techniques = new Set()
+  const moods = new Set()
+
+  selectedStyles.forEach(style => {
+    const cat = STYLE_CATEGORIES[style] || STYLE_CATEGORIES["Modern"]
+    forms.add(cat.form)
+    techniques.add(cat.technique)
+    moods.add(cat.mood)
+  })
+
+  const formStr = Array.from(forms).join(' and ')
+  const techniqueStr = Array.from(techniques).join(' and ')
+  const moodStr = Array.from(moods).join(' and ')
+
+  return `${formStr}, ${techniqueStr}, ${moodStr}`
+}
+
+function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern'], background = 'Dark') {
+  const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
+
+  let bgPrompt = "centered on dark background"
+  if (background === 'Light') bgPrompt = "centered on pure white background"
+  if (background === 'Transparent') bgPrompt = "isolated on clean solid white background, no surrounding frame"
+
+  return `Professional vector logo design, monogram emblem using the initials or letterform of "${brand_name}", ` +
+    `style: ${styleDescriptions}, clean bold iconic silhouette, high contrast, ` +
+    `centered composition, ${bgPrompt}, ` +
+    `single standalone mark, no additional text, no tagline, no mockup, ` +
+    `vector illustration, crisp edges, scalable design, professional branding, 8k detail`
+}
+
+const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
+
 export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark', model = 'hf-flux' }) => {
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
-  const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
-
-  let bgPrompt = "centered on solid dark slate background"
-  if (background === 'Light') bgPrompt = "centered on pure clean white background"
-  if (background === 'Transparent') bgPrompt = "isolated vector icon on pure white background, no frame"
-
-  // Detailed style descriptions prompt for raw AI monogram logo creation
-  const styleDescriptions = selectedStyles.map(s => {
-    const desc = STYLE_MAP[s] || STYLE_MAP["Modern"]
-    return `${s.toLowerCase()} aesthetic (${desc})`
-  }).join(' seamlessly blended with ')
-
-  const prompt = `A professional vector logo mark created of the brand letters '${brand_name}', monogram logo emblem composed of '${brand_name}', styled in a mix of ${styleDescriptions}, graphic initial emblem of '${brand_name}', ${bgPrompt}, single logo mark without any extra text underneath, sharp 8k vector logo`
+  const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles, background)
 
   // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {
@@ -492,7 +529,9 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       styles: selectedStyles,
       style: selectedStyles[0],
       background,
-      model
+      model,
+      prompt,
+      negative_prompt: NEGATIVE_PROMPT
     }, { timeout: 12000 })
     
     if (res.data && res.data.url) {
@@ -502,16 +541,17 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     console.warn('[API] Backend generate-logo unavailable, using multi-provider client fallback:', err.message)
   }
 
-  // Option 3: Direct Multi-Provider Fallbacks (HuggingFace FLUX / SDXL / Free Engines)
+  // Option 3: Direct Multi-Provider Fallbacks with Negative Prompt Encoding
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
+  const encodedNegative = encodeURIComponent(NEGATIVE_PROMPT)
   
   let targetModelParam = "flux"
   if (model === 'sdxl') targetModelParam = "turbo"
   if (model === 'imagen') targetModelParam = "flux-realism"
   if (model === 'pollinations') targetModelParam = "unity"
 
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${targetModelParam}&nologo=true`
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${targetModelParam}&negative=${encodedNegative}&nologo=true`
   
   return {
     status: 'success',

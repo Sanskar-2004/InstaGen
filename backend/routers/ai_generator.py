@@ -44,19 +44,47 @@ class LogoRequest(BaseModel):
     background: str = "Dark"  # Background choice: Dark, Light, Transparent
     model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
 
-# --- STYLE MAPPING ---
-STYLE_MAP = {
-    "Modern": "minimalist, sleek, vector art, flat design, clean lines, contemporary, professional",
-    "Vintage": "retro, 70s aesthetic, vintage badge, nostalgic, warm colors, classic, timeless",
-    "Minimalist": "minimal, simple, geometric shapes, monochrome, icon-like, bold sans-serif, stark",
-    "Luxury": "luxurious, premium, gold accents, sophisticated, elegant, high-end, exclusive, upscale",
-    "Tech": "futuristic, neon, cyberpunk, geometric shapes, circuit lines, gradient, tech startup",
-    "Playful": "cute, vibrant colors, friendly, cheerful, fun, cartoon style, energetic, approachable",
-    "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, sustainable, green",
-    "Abstract": "abstract art, artistic, creative, unique, contemporary, expressionist, modern art",
-    "3D": "three-dimensional, realistic shading, depth, glossy, metallic, modern, sculptural",
-    "Sports": "athletic, dynamic, energetic, powerful, bold, strength, competitive, movement",
+# --- CATEGORIZED STYLE SYSTEM ---
+STYLE_CATEGORIES = {
+    "Modern": {"form": "minimalist geometric", "technique": "flat vector design", "mood": "sleek modern"},
+    "Vintage": {"form": "rounded retro badge", "technique": "solid shape linework", "mood": "nostalgic classic 70s"},
+    "Minimalist": {"form": "stark minimal line", "technique": "negative space", "mood": "clean icon-like"},
+    "Luxury": {"form": "elegant ornamental", "technique": "gold metallic gradient", "mood": "luxurious upscale"},
+    "Tech": {"form": "angular cyber geometric", "technique": "neon line art", "mood": "futuristic tech-forward"},
+    "Playful": {"form": "rounded bubble", "technique": "vibrant multi-color gradient", "mood": "cheerful playful"},
+    "Organic": {"form": "flowing botanical curve", "technique": "eco line art", "mood": "natural sustainable"},
+    "Abstract": {"form": "abstract expressionist", "technique": "negative space geometry", "mood": "creative artistic"},
+    "3D": {"form": "dimensional sculptural", "technique": "3D realistic shading depth", "mood": "bold contemporary"},
+    "Sports": {"form": "dynamic angular shield", "technique": "athletic line work", "mood": "bold energetic"}
 }
+
+def build_categorized_style_description(selected_styles):
+    forms = set()
+    techniques = set()
+    moods = set()
+    for s in selected_styles:
+        cat = STYLE_CATEGORIES.get(s, STYLE_CATEGORIES["Modern"])
+        forms.add(cat["form"])
+        techniques.add(cat["technique"])
+        moods.add(cat["mood"])
+    return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
+
+def build_structured_logo_prompt(brand_name, selected_styles, background="Dark"):
+    style_desc = build_categorized_style_description(selected_styles)
+    bg_prompt = "centered on dark background"
+    if background == "Light":
+        bg_prompt = "centered on pure white background"
+    elif background == "Transparent":
+        bg_prompt = "isolated on clean solid white background, no surrounding frame"
+    return (
+        f'Professional vector logo design, monogram emblem using the initials or letterform of "{brand_name}", '
+        f'style: {style_desc}, clean bold iconic silhouette, high contrast, '
+        f'centered composition, {bg_prompt}, '
+        f'single standalone mark, no additional text, no tagline, no mockup, '
+        f'vector illustration, crisp edges, scalable design, professional branding, 8k detail'
+    )
+
+NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
 # --- FALLBACK VARIATIONS (For Offline Mode) ---
 FALLBACK_HEADLINES = [
@@ -254,20 +282,17 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            style_descriptions = " seamlessly blended with ".join([
-                f"{s.lower()} aesthetic ({STYLE_MAP.get(s, STYLE_MAP['Modern'])})" for s in selected_styles
-            ])
-            optimized_prompt = f"A professional vector logo mark created of the brand letters '{request.brand_name}', monogram logo emblem composed of '{request.brand_name}', styled in a mix of {style_descriptions}, graphic initial emblem of '{request.brand_name}', {bg_prompt}, single logo mark without any extra text underneath, sharp 8k vector logo"
-            logger.info(f"📝 Using optimized fallback prompt (no API call)")
+            optimized_prompt = build_structured_logo_prompt(request.brand_name, selected_styles, request.background)
+            logger.info(f"📝 Using structured logo prompt: {optimized_prompt[:80]}...")
         
-        # Step 3: Generate image URL using Pollinations.ai API with chosen free model
+        # Step 3: Generate image URL using Pollinations.ai API with chosen free model and negative prompt
         seed = random.randint(1, 999999999)
         poll_model = request.model if request.model in ["flux", "turbo", "unity", "flux-realism"] else "flux"
         
-        # Build Pollinations URL with optimized prompt
         import urllib.parse
         encoded_prompt = urllib.parse.quote(optimized_prompt)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model={poll_model}&nologo=true"
+        encoded_negative = urllib.parse.quote(NEGATIVE_PROMPT)
+        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model={poll_model}&negative={encoded_negative}&nologo=true"
         
         logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | Model: {poll_model} | Seed: {seed}")
         
