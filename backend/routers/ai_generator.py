@@ -61,15 +61,15 @@ STYLE_MAP = {
 # --- CATEGORIZED STYLE SYSTEM ---
 STYLE_CATEGORIES = {
     "Modern": {"form": "minimalist geometric", "technique": "flat vector design", "mood": "sleek modern"},
-    "Vintage": {"form": "rounded retro badge", "technique": "solid shape linework", "mood": "nostalgic classic 70s"},
+    "Vintage": {"form": "rounded retro badge", "technique": "solid shape emblem", "mood": "nostalgic classic 70s"},
     "Minimalist": {"form": "stark minimal line", "technique": "negative space", "mood": "clean icon-like"},
     "Luxury": {"form": "elegant ornamental", "technique": "gold metallic gradient", "mood": "luxurious upscale"},
-    "Tech": {"form": "angular cyber geometric", "technique": "neon line art", "mood": "futuristic tech-forward"},
+    "Tech": {"form": "angular cyber geometric", "technique": "neon circuit pattern", "mood": "futuristic tech-forward"},
     "Playful": {"form": "rounded bubble", "technique": "vibrant multi-color gradient", "mood": "cheerful playful"},
-    "Organic": {"form": "flowing botanical curve", "technique": "eco line art", "mood": "natural sustainable"},
-    "Abstract": {"form": "abstract expressionist", "technique": "negative space geometry", "mood": "creative artistic"},
-    "3D": {"form": "dimensional sculptural", "technique": "3D realistic shading depth", "mood": "bold contemporary"},
-    "Sports": {"form": "dynamic angular shield", "technique": "athletic line work", "mood": "bold energetic"}
+    "Organic": {"form": "flowing botanical curve", "technique": "hand-drawn texture", "mood": "natural sustainable"},
+    "Abstract": {"form": "abstract expressionist", "technique": "fragmented color blocks", "mood": "creative artistic"},
+    "3D": {"form": "dimensional sculptural", "technique": "3D realistic shading depth", "mood": "polished contemporary"},
+    "Sports": {"form": "dynamic angular shield", "technique": "motion streak accents", "mood": "bold energetic"}
 }
 
 def build_categorized_style_description(selected_styles):
