@@ -202,19 +202,18 @@ async def generate_logo(request: LogoRequest):
         # Step 1: Try to use Gemini to generate optimized prompt (if API available & quota OK)
         if GEMINI_API_KEY:
             try:
-                gemini_prompt = f"""Generate ONLY a detailed, single-line image generation prompt for a professional logo.
+                gemini_prompt = f"""Generate ONLY a detailed, single-line image generation prompt for a professional wordmark logo where the logo artwork itself is created out of the text "{request.brand_name}".
 Brand Name: {request.brand_name}
-Styles: {style_names}
-Keywords: {style_keywords}
+Styles to Combine: {style_names}
+Style Characteristics: {style_keywords}
 
 Requirements:
-- MUST include brand text "{request.brand_name}" in the logo
-- ONE LINE ONLY
-- Combine all specified styles together
-- Vector art style
-- Professional quality
+- The logo MUST be a typographic wordmark logo formed by the letters of "{request.brand_name}"
+- Seamlessly blend all specified styles ({style_names}) together
+- Clean vector art style, high contrast, professional quality
+- ONE LINE ONLY, no extra commentary
 
-Return ONLY the prompt."""
+Return ONLY the single line prompt."""
                 
                 payload = {
                     "contents": [{"parts": [{"text": gemini_prompt}]}],
@@ -244,7 +243,7 @@ Return ONLY the prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = f"Professional high resolution logo design for brand '{request.brand_name}', modern {style_names.lower()} style emblem icon, clear typography text spelling '{request.brand_name}', {style_keywords}, vector graphic, minimalist design"
+            optimized_prompt = f"Professional typographic wordmark logo created of the brand text '{request.brand_name}', styled in a mix of {style_names.lower()} aesthetic, {style_keywords}, creative lettering forming the brand logo for '{request.brand_name}', vector graphic emblem, centered on solid dark background"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
         # Step 3: Generate image URL using Pollinations.ai with Flux model

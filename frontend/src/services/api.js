@@ -206,6 +206,19 @@ export const compositeLogoWithText = (emblemUrl, brandName, styleName = 'Modern'
 
 // --- API METHODS WITH AUTOMATIC FALLBACK FOR VERCEL / OFFLINE MODE ---
 
+const STYLE_MAP = {
+  "Modern": "minimalist, sleek, vector art, flat design, clean lines, contemporary, professional",
+  "Vintage": "retro, 70s aesthetic, vintage badge, nostalgic, warm colors, classic, timeless",
+  "Minimalist": "minimal, simple, geometric shapes, monochrome, icon-like, bold sans-serif, stark",
+  "Luxury": "luxurious, premium, gold accents, sophisticated, elegant, high-end, exclusive, upscale",
+  "Tech": "futuristic, neon, cyberpunk, geometric shapes, circuit lines, gradient, tech startup",
+  "Playful": "cute, vibrant colors, friendly, cheerful, fun, cartoon style, energetic, approachable",
+  "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, sustainable, green",
+  "Abstract": "abstract art, artistic, creative, unique, contemporary, expressionist, modern art",
+  "3D": "three-dimensional, realistic shading, depth, glossy, metallic, modern, sculptural",
+  "Sports": "athletic, dynamic, energetic, powerful, bold, strength, competitive, movement",
+}
+
 export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern' }) => {
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
@@ -224,9 +237,11 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     console.warn('[API] Backend generate-logo unavailable or failed, using client-side Pollinations.ai fallback:', err.message)
   }
   
-  // Client-side fallback via Pollinations.ai directly (using flux model for superior text rendering)
-  const styleKeywords = selectedStyles.join(', ')
-  const prompt = `Professional high resolution logo design for brand '${brand_name}', modern ${styleKeywords.toLowerCase()} style emblem icon, clear typography text spelling '${brand_name}', vector graphic, minimalist design`
+  // Client-side fallback via Pollinations.ai (Flux model with style mix & match and wordmark brand text)
+  const styleNames = selectedStyles.join(' and ')
+  const styleKeywords = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
+  
+  const prompt = `Professional typographic wordmark logo created of the brand text '${brand_name}', styled in a mix of ${styleNames.toLowerCase()} aesthetic, ${styleKeywords}, creative lettering forming the brand logo for '${brand_name}', vector graphic emblem, centered on solid dark background`
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=flux`
