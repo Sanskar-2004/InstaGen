@@ -42,6 +42,7 @@ class LogoRequest(BaseModel):
     style: str = "Modern"
     styles: list = None  # For mix & match: array of selected styles
     background: str = "Dark"  # Background choice: Dark, Light, Transparent
+    model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
 
 # --- STYLE MAPPING ---
 STYLE_MAP = {
@@ -256,15 +257,16 @@ Return ONLY the single line prompt."""
             optimized_prompt = f"A high-end professional 3D vector logo emblem featuring the initials {request.brand_name}, {style_names} style, {style_keywords}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, {bg_prompt}, sharp focus"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
-        # Step 3: Generate image URL using Pollinations.ai API
+        # Step 3: Generate image URL using Pollinations.ai API with chosen free model
         seed = random.randint(1, 999999999)
+        poll_model = request.model if request.model in ["flux", "turbo", "unity", "flux-realism"] else "flux"
         
         # Build Pollinations URL with optimized prompt
         import urllib.parse
         encoded_prompt = urllib.parse.quote(optimized_prompt)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&nologo=true"
+        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model={poll_model}&nologo=true"
         
-        logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | Seed: {seed}")
+        logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | Model: {poll_model} | Seed: {seed}")
         
         return {
             "status": "success",

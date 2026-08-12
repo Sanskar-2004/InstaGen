@@ -25,6 +25,7 @@ function LeftSidebar() {
   const [aiBrandName, setAiBrandName] = useState('')
   const [selectedStyles, setSelectedStyles] = useState(['Modern'])
   const [logoBackground, setLogoBackground] = useState('Dark') // 'Dark' | 'Light' | 'Transparent'
+  const [selectedModel, setSelectedModel] = useState('flux') // 'flux' | 'turbo' | 'unity' | 'flux-realism' | 'vector'
   const [logoLoading, setLogoLoading] = useState(false)
   const [logoError, setLogoError] = useState('')
   const [generatedLogo, setGeneratedLogo] = useState(null)
@@ -194,7 +195,8 @@ function LeftSidebar() {
             brand_name: aiBrandName, 
             styles: selectedStyles,
             style: selectedStyles[0],
-            background: logoBackground
+            background: logoBackground,
+            model: selectedModel
         })
         setGeneratedLogo({ url: res.url, originalUrl: res.url })
     } catch (e) { 
@@ -483,6 +485,21 @@ function LeftSidebar() {
                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-100">🎨 Logo Generator</h3>
                
                <div className="space-y-3">
+                 <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">⚡ Free AI Model</label>
+                    <select 
+                      value={selectedModel} 
+                      onChange={(e) => setSelectedModel(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 transition-colors"
+                    >
+                      <option value="flux">✨ Flux 1.0 (High Quality 3D & Text)</option>
+                      <option value="turbo">🚀 SDXL Turbo (Ultra Fast 1-Sec)</option>
+                      <option value="unity">🎮 3D Unity Engine (Game Renders)</option>
+                      <option value="flux-realism">🎨 Flux Realism (Photorealistic)</option>
+                      <option value="vector">💎 Vector Monogram Engine (100% Letter Accuracy)</option>
+                    </select>
+                  </div>
+                 
                  <div>
                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">Brand Name</label>
                    <input className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 rounded-lg hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 focus:border-transparent transition-all" 
