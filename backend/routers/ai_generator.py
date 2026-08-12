@@ -41,7 +41,6 @@ class LogoRequest(BaseModel):
     brand_name: str
     style: str = "Modern"
     styles: list = None  # For mix & match: array of selected styles
-    background: str = "Dark"  # Background choice: Dark, Light, Transparent
     model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
 
 # --- CATEGORIZED STYLE SYSTEM ---
@@ -69,17 +68,12 @@ def build_categorized_style_description(selected_styles):
         moods.add(cat["mood"])
     return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
 
-def build_structured_logo_prompt(brand_name, selected_styles, background="Dark"):
+def build_structured_logo_prompt(brand_name, selected_styles):
     style_desc = build_categorized_style_description(selected_styles)
-    bg_prompt = "centered on dark background"
-    if background == "Light":
-        bg_prompt = "centered on pure white background"
-    elif background == "Transparent":
-        bg_prompt = "isolated on clean solid white background, no surrounding frame"
     return (
         f'Professional vector logo design, monogram emblem using the initials or letterform of "{brand_name}", '
         f'style: {style_desc}, clean bold iconic silhouette, high contrast, '
-        f'centered composition, {bg_prompt}, '
+        f'centered composition, '
         f'single standalone mark, no additional text, no tagline, no mockup, '
         f'vector illustration, crisp edges, scalable design, professional branding, 8k detail'
     )
@@ -282,7 +276,7 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = build_structured_logo_prompt(request.brand_name, selected_styles, request.background)
+            optimized_prompt = build_structured_logo_prompt(request.brand_name, selected_styles)
             logger.info(f"📝 Using structured logo prompt: {optimized_prompt[:80]}...")
         
         # Step 3: Generate image URL using Pollinations.ai API with chosen free model and negative prompt

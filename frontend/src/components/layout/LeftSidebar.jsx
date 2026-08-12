@@ -25,7 +25,6 @@ function LeftSidebar() {
   // --- AI LOGO STATE ---
   const [aiBrandName, setAiBrandName] = useState('')
   const [selectedStyles, setSelectedStyles] = useState(['Modern'])
-  const [logoBackground, setLogoBackground] = useState('Dark') // 'Dark' | 'Light' | 'Transparent'
   const [selectedModel, setSelectedModel] = useState('flux') // 'flux' | 'turbo' | 'unity' | 'flux-realism' | 'vector'
   const [logoLoading, setLogoLoading] = useState(false)
   const [logoError, setLogoError] = useState('')
@@ -92,7 +91,7 @@ function LeftSidebar() {
 
         // Guaranteed fallback: generate high-res vector monogram logo if remote fails
         if (!rawImageData || rawImageData.includes('error')) {
-          rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
+          rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles)
         }
 
         setLogoImageData(rawImageData)
@@ -100,7 +99,7 @@ function LeftSidebar() {
 
       } catch (e) {
         console.error('Logo loading error:', e.message)
-        const vectorFallback = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
+        const vectorFallback = await generateVectorMonogramLogo(aiBrandName, selectedStyles)
         setLogoImageData(vectorFallback)
       }
     }
@@ -196,7 +195,6 @@ function LeftSidebar() {
             brand_name: aiBrandName, 
             styles: selectedStyles,
             style: selectedStyles[0],
-            background: logoBackground,
             model: selectedModel
         })
         setGeneratedLogo({ url: res.url, originalUrl: res.url })
@@ -536,33 +534,6 @@ function LeftSidebar() {
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🖼️ Background Option</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1 border border-slate-300 dark:border-slate-600">
-                      <button
-                        type="button"
-                        onClick={() => setLogoBackground('Dark')}
-                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Dark' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
-                      >
-                        🌙 Dark
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLogoBackground('Light')}
-                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Light' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
-                      >
-                        ☀️ Light
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLogoBackground('Transparent')}
-                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Transparent' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
-                      >
-                        🔲 Clean/White
-                      </button>
-                    </div>
                   </div>
 
                  <button onClick={generateLogo} disabled={logoLoading} 

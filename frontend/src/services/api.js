@@ -486,36 +486,31 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
   return `${formStr}, ${techniqueStr}, ${moodStr}`
 }
 
-function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern'], background = 'Dark') {
+function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
   const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
-
-  let bgPrompt = "centered on dark background"
-  if (background === 'Light') bgPrompt = "centered on pure white background"
-  if (background === 'Transparent') bgPrompt = "isolated on clean solid white background, no surrounding frame"
 
   return `Professional vector logo design, monogram emblem using the initials or letterform of "${brand_name}", ` +
     `style: ${styleDescriptions}, clean bold iconic silhouette, high contrast, ` +
-    `centered composition, ${bgPrompt}, ` +
+    `centered composition, ` +
     `single standalone mark, no additional text, no tagline, no mockup, ` +
     `vector illustration, crisp edges, scalable design, professional branding, 8k detail`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
-export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark', model = 'hf-flux' }) => {
+export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', model = 'hf-flux' }) => {
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
-  const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles, background)
+  const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles)
 
   // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {
-    const logoDataUrl = await generateVectorMonogramLogo(brand_name, selectedStyles, background)
+    const logoDataUrl = await generateVectorMonogramLogo(brand_name, selectedStyles)
     return {
       status: 'success',
       url: logoDataUrl,
       brand_name,
       styles: selectedStyles,
       style: selectedStyles[0],
-      background,
       model: 'vector_monogram',
       mode: 'vector_monogram'
     }
