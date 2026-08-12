@@ -94,8 +94,8 @@ function LeftSidebar() {
         if (!rawImageData || rawImageData.includes('error')) {
           rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
         } else {
-          // Composite brand text letters onto AI graphic emblem for guaranteed letter accuracy
-          rawImageData = await compositeLogoWithText(rawImageData, aiBrandName, selectedStyles.join(' '))
+          // Composite brand text letters onto AI graphic emblem using Compound Style Fusion Configuration
+          rawImageData = await compositeLogoWithText(rawImageData, aiBrandName, selectedStyles)
         }
 
         setLogoImageData(rawImageData)
@@ -528,7 +528,16 @@ function LeftSidebar() {
                       ))}
                     </div>
                     {selectedStyles.length > 0 && (
-                      <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-1.5">✨ Selected: {selectedStyles.join(', ')}</p>
+                      <div className="mt-2 p-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                        <p className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">✨ Active Style Fusion ({selectedStyles.length}):</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedStyles.map(s => (
+                            <span key={s} className="px-1.5 py-0.5 text-[9px] font-medium bg-indigo-600 text-white rounded">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
 

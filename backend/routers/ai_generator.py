@@ -254,7 +254,8 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = f"A high-end professional 3D vector logo emblem featuring the initials {request.brand_name}, {style_names} style, {style_keywords}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, {bg_prompt}, sharp focus"
+            style_fusion_title = " + ".join(selected_styles)
+            optimized_prompt = f"A hybrid 3D vector monogram logo mark of the letters '{request.brand_name}'. Styled in a fused aesthetic of {style_fusion_title} ({style_keywords}), {bg_prompt}"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
         # Step 3: Generate image URL using Pollinations.ai API with chosen free model
