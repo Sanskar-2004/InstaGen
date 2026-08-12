@@ -70,14 +70,8 @@ def build_categorized_style_description(selected_styles):
     return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
 
 def build_structured_logo_prompt(brand_name, selected_styles):
-    style_desc = build_categorized_style_description(selected_styles)
-    return (
-        f'Professional vector logo design, monogram emblem using the initials or letterform of "{brand_name}", '
-        f'style: {style_desc}, clean bold iconic silhouette, high contrast, '
-        f'centered composition, '
-        f'single standalone mark, no additional text, no tagline, no mockup, '
-        f'vector illustration, crisp edges, scalable design, professional branding, 8k detail'
-    )
+    style_str = " ".join(selected_styles)
+    return f'Vector logo emblem of letters "{brand_name}", {style_str} style, minimal icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 

@@ -478,13 +478,8 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
 }
 
 function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
-  const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
-
-  return `Professional vector logo design, monogram emblem using the initials or letterform of "${brand_name}", ` +
-    `style: ${styleDescriptions}, clean bold iconic silhouette, high contrast, ` +
-    `centered composition, ` +
-    `single standalone mark, no additional text, no tagline, no mockup, ` +
-    `vector illustration, crisp edges, scalable design, professional branding, 8k detail`
+  const styleStr = selectedStyles.join(' ')
+  return `Vector logo emblem of letters "${brand_name}", ${styleStr} style, minimal icon mark, clean vector art`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
