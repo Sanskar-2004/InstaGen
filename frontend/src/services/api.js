@@ -134,10 +134,11 @@ export const extractColorsClientSide = (file) => {
 }
 
 // Composite AI Emblem + Exact Brand Name Text into a unified high-res PNG image
-export const compositeLogoWithText = (emblemUrl, brandName, styleName = 'Modern') => {
+export const compositeLogoWithText = (emblemUrl, brandName, styleStr = 'Modern') => {
   return new Promise((resolve) => {
     if (!brandName || !brandName.trim()) {
-      return resolve(emblemUrl)
+      resolve(emblemUrl)
+      return
     }
 
     const img = new Image()
@@ -147,46 +148,49 @@ export const compositeLogoWithText = (emblemUrl, brandName, styleName = 'Modern'
       try {
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
-
-        const size = 600
+        const size = img.width || 512
         canvas.width = size
         canvas.height = size
 
-        // Elegant dark card background
-        ctx.fillStyle = '#0b0f19'
-        ctx.fillRect(0, 0, size, size)
+        // 1. Draw raw AI generated logo artwork
+        ctx.drawImage(img, 0, 0, size, size)
 
-        // Accent inner border line
-        ctx.strokeStyle = '#1e293b'
-        ctx.lineWidth = 4
-        ctx.strokeRect(16, 16, size - 32, size - 32)
-
-        // Draw Emblem Icon centered
-        const emblemSize = 340
-        const emblemX = (size - emblemSize) / 2
-        const emblemY = 35
-
-        ctx.drawImage(img, emblemX, emblemY, emblemSize, emblemSize)
-
-        // Render Brand Name Text
+        // 2. Sculpt exact brand text onto center of emblem
+        const name = brandName.trim().toUpperCase()
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
 
-        const name = brandName.trim().toUpperCase()
-        let fontSize = 38
-        if (name.length > 15) fontSize = 30
-        if (name.length > 25) fontSize = 22
+        let fontSize = 110
+        if (name.length === 1) fontSize = 160
+        if (name.length === 2) fontSize = 130
+        if (name.length >= 3 && name.length <= 5) fontSize = 90
+        if (name.length > 5) fontSize = 50
 
-        ctx.font = `700 ${fontSize}px Inter, system-ui, sans-serif`
-        ctx.fillStyle = '#ffffff'
+        let fontStyle = '900 system-ui, sans-serif'
+        if (styleStr.includes('Luxury') || styleStr.includes('Vintage')) fontStyle = 'bold Georgia, serif'
+        if (styleStr.includes('Tech')) fontStyle = '900 "Courier New", monospace'
+        if (styleStr.includes('Sports')) fontStyle = 'italic 900 Impact, sans-serif'
 
-        const textY = size - 90
-        ctx.fillText(name, size / 2, textY)
+        ctx.font = `${fontSize}px ${fontStyle}`
 
-        // Subtitle line
-        ctx.font = '500 12px sans-serif'
-        ctx.fillStyle = '#64748b'
-        ctx.fillText('BRAND IDENTITY', size / 2, textY + 36)
+        // Text shadow / glow for high contrast over AI artwork
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'
+        ctx.fillText(name, size / 2 + 4, size / 2 + 4)
+
+        const grad = ctx.createLinearGradient(0, 0, size, size)
+        if (styleStr.includes('Luxury')) {
+          grad.addColorStop(0, '#f59e0b')
+          grad.addColorStop(1, '#fbbf24')
+        } else if (styleStr.includes('Tech') || styleStr.includes('3D')) {
+          grad.addColorStop(0, '#06b6d4')
+          grad.addColorStop(1, '#3b82f6')
+        } else {
+          grad.addColorStop(0, '#ffffff')
+          grad.addColorStop(1, '#e2e8f0')
+        }
+
+        ctx.fillStyle = grad
+        ctx.fillText(name, size / 2, size / 2)
 
         const compositeDataUrl = canvas.toDataURL('image/png')
         resolve(compositeDataUrl)
@@ -398,11 +402,12 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
   const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
 
-  let bgPrompt = "centered on dark slate background"
+  let bgPrompt = "centered on dark background"
   if (background === 'Light') bgPrompt = "centered on clean white background"
-  if (background === 'Transparent') bgPrompt = "isolated graphic emblem on solid white background"
+  if (background === 'Transparent') bgPrompt = "isolated on clean white background"
 
-  const prompt = `A high-end professional 3D vector logo emblem featuring the initials ${brand_name}, ${selectedStyles.join(' ')} style, ${styleDescriptors}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, ${bgPrompt}, sharp focus`
+  // Laser-focused prompt: front-loaded with exact brand letters/name in quotes
+  const prompt = `A vector logo of the letters "${brand_name}", monogram emblem formed by the letters "${brand_name}", ${selectedStyles.join(' ')} aesthetic, ${styleDescriptors}, ${bgPrompt}`
 
   // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {

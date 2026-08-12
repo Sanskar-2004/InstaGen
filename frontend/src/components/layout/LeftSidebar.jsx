@@ -9,7 +9,8 @@ import {
   removeBackgroundApi, 
   extractColorsApi, 
   proxyImageApi,
-  generateVectorMonogramLogo
+  generateVectorMonogramLogo,
+  compositeLogoWithText
 } from '../../services/api'
 
 function LeftSidebar() {
@@ -92,10 +93,13 @@ function LeftSidebar() {
         // Guaranteed fallback: generate high-res vector monogram logo if remote fails
         if (!rawImageData || rawImageData.includes('error')) {
           rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
+        } else {
+          // Composite brand text letters onto AI graphic emblem for guaranteed letter accuracy
+          rawImageData = await compositeLogoWithText(rawImageData, aiBrandName, selectedStyles.join(' '))
         }
 
         setLogoImageData(rawImageData)
-        console.log('Logo image loaded successfully')
+        console.log('Logo image loaded and composited successfully')
 
       } catch (e) {
         console.error('Logo loading error:', e.message)
