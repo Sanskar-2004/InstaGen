@@ -105,7 +105,7 @@ def build_categorized_style_description(selected_styles):
 def build_structured_logo_prompt(brand_name, selected_styles, custom_prompt=""):
     style_desc = build_categorized_style_description(selected_styles)
     custom_part = f"{custom_prompt.strip()}, " if custom_prompt and custom_prompt.strip() else ""
-    return f'Vector logo emblem composed of the initial letterform "{brand_name}", monogram mark of "{brand_name}", {custom_part}style: {style_desc}, minimal icon mark, clean vector art'
+    return f'Clean vector typography logo of letters "{brand_name}", modern monogram mark of letters "{brand_name}", initial lettermark logo for brand "{brand_name}", {custom_part}style: {style_desc}, minimalist icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
