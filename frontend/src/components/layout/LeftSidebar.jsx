@@ -24,6 +24,7 @@ function LeftSidebar() {
   // --- AI LOGO STATE ---
   const [aiBrandName, setAiBrandName] = useState('')
   const [selectedStyles, setSelectedStyles] = useState(['Modern'])
+  const [logoBackground, setLogoBackground] = useState('Dark') // 'Dark' | 'Light' | 'Transparent'
   const [logoLoading, setLogoLoading] = useState(false)
   const [logoError, setLogoError] = useState('')
   const [generatedLogo, setGeneratedLogo] = useState(null)
@@ -66,7 +67,6 @@ function LeftSidebar() {
         console.log('Loading logo from:', generatedLogo.url.substring(0, 80))
         let rawImageData = null
         
-        // Try direct image fetch first
         try {
           const response = await fetch(generatedLogo.url)
           if (response.ok) {
@@ -90,16 +90,8 @@ function LeftSidebar() {
           }
         }
 
-        // Composite exact Brand Name onto logo image
-        const finalCompositeUrl = await compositeLogoWithText(
-          rawImageData, 
-          aiBrandName, 
-          selectedStyles.join(' ')
-        )
-
-        setLogoImageData(finalCompositeUrl)
-        setGeneratedLogo(prev => prev ? { ...prev, originalUrl: finalCompositeUrl } : null)
-        console.log('Logo loaded and composited with brand text successfully')
+        setLogoImageData(rawImageData)
+        console.log('Logo image loaded successfully')
 
       } catch (e) {
         console.error('Logo loading error:', e.message)
@@ -197,7 +189,8 @@ function LeftSidebar() {
         const res = await generateLogoApi({
             brand_name: aiBrandName, 
             styles: selectedStyles,
-            style: selectedStyles[0]
+            style: selectedStyles[0],
+            background: logoBackground
         })
         setGeneratedLogo({ url: res.url, originalUrl: res.url })
     } catch (e) { 
@@ -494,25 +487,52 @@ function LeftSidebar() {
                  </div>
                  
                  <div>
-                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🎭 Style Mix & Match</label>
-                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Select one or more styles to combine</p>
-                   <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto bg-slate-50 dark:bg-slate-700 p-2 rounded-lg border border-slate-300 dark:border-slate-600 transition-colors duration-300">
-                     {logoStyles.map(style => (
-                       <label key={style} className="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 p-1 rounded transition">
-                         <input 
-                           type="checkbox" 
-                           checked={selectedStyles.includes(style)}
-                           onChange={() => toggleStyle(style)}
-                           className="w-4 h-4 rounded cursor-pointer accent-slate-600 dark:accent-slate-400"
-                         />
-                         <span className="text-xs text-slate-700 dark:text-slate-300">{style}</span>
-                       </label>
-                     ))}
-                   </div>
-                   {selectedStyles.length > 0 && (
-                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">✨ Selected: {selectedStyles.join(', ')}</p>
-                   )}
-                 </div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🎭 Style Mix & Match</label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Select one or more styles to combine</p>
+                    <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto bg-slate-50 dark:bg-slate-700 p-2 rounded-lg border border-slate-300 dark:border-slate-600 transition-colors duration-300">
+                      {logoStyles.map(style => (
+                        <label key={style} className="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 p-1 rounded transition">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedStyles.includes(style)}
+                            onChange={() => toggleStyle(style)}
+                            className="w-4 h-4 rounded cursor-pointer accent-slate-600 dark:accent-slate-400"
+                          />
+                          <span className="text-xs text-slate-700 dark:text-slate-300">{style}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {selectedStyles.length > 0 && (
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-1.5">✨ Selected: {selectedStyles.join(', ')}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🖼️ Background Option</label>
+                    <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1 border border-slate-300 dark:border-slate-600">
+                      <button
+                        type="button"
+                        onClick={() => setLogoBackground('Dark')}
+                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Dark' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
+                      >
+                        🌙 Dark
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoBackground('Light')}
+                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Light' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
+                      >
+                        ☀️ Light
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoBackground('Transparent')}
+                        className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${logoBackground === 'Transparent' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}`}
+                      >
+                        🔲 Clean/White
+                      </button>
+                    </div>
+                  </div>
 
                  <button onClick={generateLogo} disabled={logoLoading} 
                          className="w-full py-2 px-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg font-semibold text-xs hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all">

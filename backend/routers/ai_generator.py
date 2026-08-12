@@ -41,6 +41,7 @@ class LogoRequest(BaseModel):
     brand_name: str
     style: str = "Modern"
     styles: list = None  # For mix & match: array of selected styles
+    background: str = "Dark"  # Background choice: Dark, Light, Transparent
 
 # --- STYLE MAPPING ---
 STYLE_MAP = {
@@ -194,7 +195,14 @@ async def generate_logo(request: LogoRequest):
             all_keywords.append(keywords)
         style_keywords = ", ".join(all_keywords)
         
-        logger.info(f"🎨 LOGO GENERATION: Creating logo for '{request.brand_name}' with styles: {style_names}")
+        # Determine background prompt
+        bg_prompt = "centered on solid dark slate background"
+        if request.background == "Light":
+            bg_prompt = "centered on pure clean white background"
+        elif request.background == "Transparent":
+            bg_prompt = "isolated vector icon on pure white background, no surrounding frame"
+            
+        logger.info(f"🎨 LOGO GENERATION: Creating logo for '{request.brand_name}' with styles: {style_names} | Background: {request.background}")
         
         optimized_prompt = None
         used_gemini_api = False
@@ -202,16 +210,18 @@ async def generate_logo(request: LogoRequest):
         # Step 1: Try to use Gemini to generate optimized prompt (if API available & quota OK)
         if GEMINI_API_KEY:
             try:
-                gemini_prompt = f"""Generate ONLY a detailed, single-line image generation prompt for a professional wordmark logo where the logo artwork itself is created out of the text "{request.brand_name}".
-Brand Name: {request.brand_name}
-Styles to Combine: {style_names}
+                gemini_prompt = f"""Generate ONLY a detailed single-line image generation prompt for a vector logo mark composed of the brand name / letters "{request.brand_name}".
+Brand Name / Letters: {request.brand_name}
+Mixed Styles: {style_names}
 Style Characteristics: {style_keywords}
+Background Setting: {request.background} ({bg_prompt})
 
 Requirements:
-- The logo MUST be a typographic wordmark logo formed by the letters of "{request.brand_name}"
+- The logo MUST be a monogram / initial logo mark created of the letters "{request.brand_name}"
 - Seamlessly blend all specified styles ({style_names}) together
-- Clean vector art style, high contrast, professional quality
-- ONE LINE ONLY, no extra commentary
+- Background MUST match: {bg_prompt}
+- DO NOT add extra text underneath
+- ONE LINE ONLY, no preamble or extra commentary
 
 Return ONLY the single line prompt."""
                 
@@ -243,7 +253,7 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = f"Professional typographic wordmark logo created of the brand text '{request.brand_name}', styled in a mix of {style_names.lower()} aesthetic, {style_keywords}, creative lettering forming the brand logo for '{request.brand_name}', vector graphic emblem, centered on solid dark background"
+            optimized_prompt = f"A clean high quality vector logo mark created of the letters and brand name '{request.brand_name}', monogram logo emblem composed of '{request.brand_name}', styled in a mix of {style_names.lower()} aesthetic, {style_keywords}, graphic initial emblem of '{request.brand_name}', {bg_prompt}, single logo icon without any extra text underneath, sharp 8k vector logo"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
         # Step 3: Generate image URL using Pollinations.ai with Flux model

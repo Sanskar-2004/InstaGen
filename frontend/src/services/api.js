@@ -219,7 +219,7 @@ const STYLE_MAP = {
   "Sports": "athletic, dynamic, energetic, powerful, bold, strength, competitive, movement",
 }
 
-export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern' }) => {
+export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark' }) => {
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
   
@@ -227,7 +227,8 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     const res = await axios.post(endpointUrl, {
       brand_name,
       styles: selectedStyles,
-      style: selectedStyles[0]
+      style: selectedStyles[0],
+      background
     }, { timeout: 12000 })
     
     if (res.data && res.data.url) {
@@ -237,11 +238,16 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     console.warn('[API] Backend generate-logo unavailable or failed, using client-side Pollinations.ai fallback:', err.message)
   }
   
-  // Client-side fallback via Pollinations.ai (Flux model with style mix & match and wordmark brand text)
+  // Client-side fallback via Pollinations.ai (Flux model with background choice & monogram initial logo)
   const styleNames = selectedStyles.join(' and ')
   const styleKeywords = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
   
-  const prompt = `Professional typographic wordmark logo created of the brand text '${brand_name}', styled in a mix of ${styleNames.toLowerCase()} aesthetic, ${styleKeywords}, creative lettering forming the brand logo for '${brand_name}', vector graphic emblem, centered on solid dark background`
+  let bgPrompt = "centered on solid dark slate background"
+  if (background === 'Light') bgPrompt = "centered on pure clean white background"
+  if (background === 'Transparent') bgPrompt = "isolated vector icon on pure white background, no surrounding frame"
+  
+  const prompt = `A clean high quality vector logo mark created of the letters and brand name '${brand_name}', monogram logo emblem composed of '${brand_name}', styled in a mix of ${styleNames.toLowerCase()} aesthetic, ${styleKeywords}, graphic initial emblem of '${brand_name}', ${bgPrompt}, single logo icon without any extra text underneath, sharp 8k vector logo`
+  
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=flux`
@@ -252,6 +258,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     brand_name,
     styles: selectedStyles,
     style: selectedStyles[0],
+    background,
     seed,
     mode: 'client_fallback'
   }
