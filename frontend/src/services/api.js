@@ -497,7 +497,7 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
 
 function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
   const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
-  return `Vector logo emblem of letters "${brand_name}", style: ${styleDescriptions}, minimal icon mark, clean vector art`
+  return `Vector logo emblem composed of the initial letterform "${brand_name}", monogram mark of "${brand_name}", style: ${styleDescriptions}, minimal icon mark, clean vector art`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"

@@ -103,40 +103,40 @@ def build_categorized_style_description(selected_styles):
 
 def build_structured_logo_prompt(brand_name, selected_styles):
     style_desc = build_categorized_style_description(selected_styles)
-    return f'Vector logo emblem of letters "{brand_name}", style: {style_desc}, minimal icon mark, clean vector art'
+    return f'Vector logo emblem composed of the initial letterform "{brand_name}", monogram mark of "{brand_name}", style: {style_desc}, minimal icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
 # --- FALLBACK VARIATIONS (For Offline Mode) ---
 FALLBACK_HEADLINES = [
-    "Stop Scrolling! {product} is Here 🔥",
-    "Upgrade Your Life with {product} ✨",
-    "The Secret to {desc} is Here 🤫",
-    "Why Everyone is Talking About {product} 🚀",
-    "Don't Miss Out on {product} 💎",
-    "Finally, {product} is Here! 🎉",
-    "Game-Changer Alert: {product} 🚀",
-    "You Need {product} in Your Life 💯"
+    "Discover Excellence with {product} 🔥",
+    "Transform Your Experience: {product} ✨",
+    "The Strategic Secret Behind {product} 🤫",
+    "Why Industry Leaders Choose {product} 🚀",
+    "Elevate Your Brand: {product} 💎",
+    "The New Standard in {product} 🎉",
+    "Revolutionizing {product} Today 🚀",
+    "Unleash Full Potential with {product} 💯"
 ]
 
 FALLBACK_BODIES = [
-    "Experience premium quality. {desc} Join thousands of satisfied customers.",
-    "Tired of mediocrity? {product} is the upgrade you've been waiting for.",
-    "Transform your experience today. {desc} Limited stock available!",
-    "Designed specifically for you. {desc} Don't wait, get it now!",
-    "This is what excellence looks like. {product} is your answer.",
-    "Stop settling for less. {product} is the difference maker.",
-    "The results speak for themselves. {desc} Be part of the movement!"
+    "Crafted to perfection. {desc} Designed to elevate your brand positioning.",
+    "Engineered for performance and elegance. {product} delivers results.",
+    "Reinvent your brand image. {desc} Built for leaders in every industry.",
+    "Tailored for your specific vision. {desc} Experience the difference.",
+    "This is what modern innovation looks like. {product} sets the bar.",
+    "Refined quality and seamless execution. {product} is your key advantage.",
+    "Driven by authenticity and purpose. {desc} Elevate your presence now."
 ]
 
 FALLBACK_CTAS = [
-    "Shop Now 🛒",
-    "Get Yours 👇",
-    "Learn More 💡",
-    "Claim Offer 🎁",
-    "Join Today ✨",
-    "Discover More 🔍",
-    "Start Now 🚀"
+    "Discover {product} 🛒",
+    "Explore Collection 👇",
+    "Elevate Your Brand 💡",
+    "Claim Exclusive Access 🎁",
+    "Join the Movement ✨",
+    "Explore Industry Insights 🔍",
+    "Get Started 🚀"
 ]
 
 # --- ENDPOINTS ---
@@ -145,29 +145,30 @@ FALLBACK_CTAS = [
 async def generate_ad_copy(request: AdCopyRequest):
     """
     Generate Strategic Brand-Aware Ad Copy with Gemini AI & Brand Essence Analysis.
-    Analyzes the product/brand identity and returns high-converting copy.
+    Analyzes the product/brand identity and returns high-converting copy aligned with brand nature.
     """
     variation_seed = random.randint(1, 100000)
     
     system_prompt = """You are an elite Senior Brand Strategist and Direct-Response Copywriter.
-Analyze the brand/product identity and write high-converting Instagram ad copy.
+Your goal is to deeply analyze the brand name, product nature, industry category, and target tone, then write copy that aligns 100% with the brand's unique positioning.
+
 Return ONLY valid JSON with no markdown formatting:
 {
-  "brand_analysis": "Concise 1-sentence insight on the brand identity and market position",
-  "headline": "High-converting hook headline, max 7 words with emoji",
-  "body": "Persuasive benefit-driven copy addressing customer desire, max 30 words",
-  "cta": "Action-oriented CTA button text",
-  "hashtags": "#Brand #Product #Category #Trending"
+  "brand_analysis": "Deep 1-sentence analysis of the brand nature, category positioning, and audience hook",
+  "headline": "Captivating headline deeply aligned with brand nature and tone, max 7 words with emoji",
+  "body": "Persuasive benefit-driven body copy reflecting brand essence, product quality, and value, max 30 words",
+  "cta": "Tailored action-oriented CTA button text aligned with the brand offer",
+  "hashtags": "#BrandName #CategoryHashtag #IndustryHashtag #Trending"
 }"""
 
-    user_prompt = f"""Analyze brand and generate Instagram ad copy (Variation #{variation_seed}):
-Brand/Product Name: {request.product_name}
-Description / Niche: {request.description if request.description else 'Premium product'}
-Target Tone: {request.tone}
+    user_prompt = f"""Analyze brand nature and generate aligned Instagram ad copy (Variation #{variation_seed}):
+Brand / Product Name: {request.product_name}
+Description / Niche / Industry: {request.description if request.description else 'Premium product'}
+Target Tone & Identity: {request.tone}
 
 Instructions:
-1. First analyze the brand's core value proposition and essence in brand_analysis.
-2. Write a captivating headline, persuasive body, call-to-action, and relevant hashtags.
+1. Deeply analyze the brand's nature, industry positioning, and core value proposition.
+2. Craft a headline and body that sound authentic, premium, and specifically tailored to this brand.
 3. Return ONLY valid JSON."""
 
     payload = {
