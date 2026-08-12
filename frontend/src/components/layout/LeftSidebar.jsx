@@ -34,7 +34,9 @@ function LeftSidebar() {
   // Style options for mix & match
   const logoStyles = [
     'Modern', 'Vintage', 'Minimalist', 'Luxury', 'Tech',
-    'Playful', 'Organic', 'Abstract', '3D', 'Sports'
+    'Playful', 'Organic', 'Abstract', '3D', 'Sports',
+    'Elegant', 'Geometric', 'Gradient', 'Graffiti',
+    'Monochrome', 'Watercolor', 'Retro', 'Nature'
   ]
   
   // Toggle style selection for mix & match
