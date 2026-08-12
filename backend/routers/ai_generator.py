@@ -23,13 +23,13 @@ router = APIRouter(prefix="/api/ai", tags=["AI Generator"])
 
 # --- CONFIGURATION ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_IMAGE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GEMINI_IMAGE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
 
 # Verify Gemini API Key
 if GEMINI_API_KEY:
-    logger.info("✅ GEMINI PRO CONFIGURED - Using Gemini 2.0 Flash for logo generation")
+    logger.info("✅ GEMINI CONFIGURED - Using Gemini Flash API for logo generation")
 else:
-    logger.warning("⚠️ GEMINI_API_KEY not set - Logo generation will fail. Set GEMINI_API_KEY in .env")
+    logger.warning("⚠️ GEMINI_API_KEY not set in .env")
 
 # --- MODELS ---
 class AdCopyRequest(BaseModel):
