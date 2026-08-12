@@ -10,7 +10,11 @@ import uuid
 import logging
 from PIL import Image
 import io
-from rembg import remove
+try:
+    from rembg import remove
+except Exception as rembg_import_err:
+    remove = None
+
 from typing import List, Dict
 
 # Setup logging
@@ -31,13 +35,6 @@ OUTPUT_FORMAT = "PNG"  # Always save as PNG for transparency support
 def validate_image_file(content_type: str, file_size: int) -> None:
     """
     Validate uploaded file.
-    
-    Args:
-        content_type: MIME type of the file
-        file_size: Size of the file in bytes
-        
-    Raises:
-        HTTPException: If validation fails
     """
     if content_type not in ALLOWED_FORMATS:
         raise HTTPException(
@@ -53,43 +50,48 @@ def validate_image_file(content_type: str, file_size: int) -> None:
 
 def remove_background_from_image(image_bytes: bytes) -> Image.Image:
     """
-    Remove background from image using rembg.
-    
-    Args:
-        image_bytes: Raw image bytes
-        
-    Returns:
-        PIL Image with background removed
-        
-    Raises:
-        ValueError: If background removal fails
+    Remove background from image using rembg or PIL thresholding fallback.
     """
-    try:
-        input_image = Image.open(io.BytesIO(image_bytes))
-        
-        # Convert to RGB if needed (rembg requires RGB input)
-        if input_image.mode not in ['RGB', 'RGBA']:
-            input_image = input_image.convert('RGB')
-        
-        # Remove background
-        output_image = remove(input_image)
-        
-        # Ensure output has alpha channel
-        if output_image.mode != 'RGBA':
-            output_image = output_image.convert('RGBA')
-        
-        return output_image
+    input_image = Image.open(io.BytesIO(image_bytes))
     
-    except Exception as e:
-        logger.warning(f"Background removal failed: {str(e)}")
-        # If removal fails, return the original image converted to RGBA
+    # Try rembg AI engine if available
+    if remove is not None:
         try:
-            fallback_image = Image.open(io.BytesIO(image_bytes))
-            if fallback_image.mode != 'RGBA':
-                fallback_image = fallback_image.convert('RGBA')
-            return fallback_image
-        except Exception as fallback_error:
-            raise ValueError(f"Could not process image: {str(fallback_error)}")
+            rgb_input = input_image.convert('RGB') if input_image.mode not in ['RGB', 'RGBA'] else input_image
+            output_image = remove(rgb_input)
+            if output_image.mode != 'RGBA':
+                output_image = output_image.convert('RGBA')
+            return output_image
+        except Exception as e:
+            logger.warning(f"rembg processing failed: {e}, falling back to PIL thresholding")
+
+    # High-reliability PIL threshold fallback: Convert near-white & corner background pixels to transparent
+    try:
+        rgba = input_image.convert('RGBA')
+        datas = rgba.getdata()
+        
+        # Sample corner pixel as background candidate
+        bg_r, bg_g, bg_b, _ = datas[0]
+        threshold = 30
+        
+        newData = []
+        for item in datas:
+            r, g, b, a = item
+            diff_r = abs(r - bg_r)
+            diff_g = abs(g - bg_g)
+            diff_b = abs(b - bg_b)
+            
+            # If matches corner background color OR is near-white (>240)
+            if (diff_r < threshold and diff_g < threshold and diff_b < threshold) or (r > 240 and g > 240 and b > 240):
+                newData.append((r, g, b, 0)) # transparent
+            else:
+                newData.append(item)
+                
+        rgba.putdata(newData)
+        return rgba
+    except Exception as fallback_err:
+        logger.error(f"Fallback bg removal error: {fallback_err}")
+        return input_image.convert('RGBA')
 
 def save_processed_image(image: Image.Image, filename: str) -> Path:
     """

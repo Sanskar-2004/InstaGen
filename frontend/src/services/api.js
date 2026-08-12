@@ -647,6 +647,75 @@ export const uploadOriginalAssetApi = async (file) => {
   }
 }
 
+export const removeBackgroundJS = async (file) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0)
+          
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imgData.data
+          
+          // Sample corner color (top-left) as background color candidate
+          const bgR = data[0]
+          const bgG = data[1]
+          const bgB = data[2]
+          
+          const threshold = 35
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i]
+            const g = data[i + 1]
+            const b = data[i + 2]
+            
+            const diffR = Math.abs(r - bgR)
+            const diffG = Math.abs(g - bgG)
+            const diffB = Math.abs(b - bgB)
+            
+            // If matches corner background color OR is near-white (>235 in RGB)
+            if ((diffR < threshold && diffG < threshold && diffB < threshold) || (r > 235 && g > 235 && b > 235)) {
+              data[i + 3] = 0 // Transparent alpha
+            }
+          }
+          
+          ctx.putImageData(imgData, 0, 0)
+          const transparentDataUrl = canvas.toDataURL('image/png')
+          resolve({
+            status: 'success',
+            url: transparentDataUrl,
+            filename: file.name,
+            original: file.name
+          })
+        } catch (canvasErr) {
+          resolve({
+            status: 'success',
+            url: event.target.result,
+            filename: file.name,
+            original: file.name
+          })
+        }
+      }
+      img.onerror = () => {
+        resolve({
+          status: 'success',
+          url: event.target.result,
+          filename: file.name,
+          original: file.name
+        })
+      }
+      img.src = event.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 export const removeBackgroundApi = async (file) => {
   const endpointUrl = `${API_BASE_URL}/api/assets/remove-background`
   const formData = new FormData()
@@ -661,16 +730,11 @@ export const removeBackgroundApi = async (file) => {
       return res.data
     }
   } catch (err) {
-    console.warn('[API] Backend remove-background failed/offline, fallback to original:', err.message)
+    console.warn('[API] Backend remove-background failed/offline, switching to browser canvas processing:', err.message)
   }
   
-  const dataUrl = await fileToDataUrl(file)
-  return {
-    status: 'success',
-    url: dataUrl,
-    filename: file.name,
-    original: file.name
-  }
+  // High-reliability client-side canvas fallback
+  return await removeBackgroundJS(file)
 }
 
 export const extractColorsApi = async (file) => {

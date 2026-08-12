@@ -10,14 +10,19 @@ export default function EditorLayout({ children }) {
     <div className="flex flex-col md:flex-row h-screen w-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-hidden select-none">
       
       {/* MOBILE TOP NAVBAR (< md screens) */}
-      <header className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm z-30 flex-shrink-0">
+      <header className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-2xs z-30 flex-shrink-0">
         <div className="flex items-center space-x-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-sm shadow">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-slate-900 to-indigo-600 dark:from-indigo-600 dark:to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-2xs">
             ✨
           </div>
-          <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-            InstaGen
-          </span>
+          <div className="flex items-center space-x-1">
+            <span className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-slate-100 font-sans">
+              InstaGen
+            </span>
+            <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-200/50 dark:border-indigo-800/50 uppercase">
+              STUDIO
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">
