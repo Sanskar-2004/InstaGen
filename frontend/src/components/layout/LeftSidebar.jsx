@@ -8,7 +8,8 @@ import {
   uploadOriginalAssetApi, 
   removeBackgroundApi, 
   extractColorsApi, 
-  proxyImageApi 
+  proxyImageApi,
+  compositeLogoWithText
 } from '../../services/api'
 
 function LeftSidebar() {
@@ -63,42 +64,46 @@ function LeftSidebar() {
     const loadLogoImage = async () => {
       try {
         console.log('Loading logo from:', generatedLogo.url.substring(0, 80))
+        let rawImageData = null
         
-        // Try no-cors fetch first
+        // Try direct image fetch first
         try {
-          const response = await fetch(generatedLogo.url, {
-            mode: 'no-cors'
-          })
-          const blob = await response.blob()
-          
-          if (blob.size > 0) {
-            const dataUrl = URL.createObjectURL(blob)
-            setLogoImageData(dataUrl)
-            console.log('Logo loaded directly')
-            return
+          const response = await fetch(generatedLogo.url)
+          if (response.ok) {
+            const blob = await response.blob()
+            rawImageData = await new Promise((res) => {
+              const r = new FileReader()
+              r.onload = () => res(r.result)
+              r.readAsDataURL(blob)
+            })
           }
         } catch (fetchErr) {
           console.warn('Direct fetch failed, trying proxy...')
         }
         
-        // Fallback: use proxy endpoint
-        console.log('Using proxy endpoint...')
-        const proxyRes = await proxyImageApi(generatedLogo.url)
-        
-        if (proxyRes.status === 'success') {
-          setLogoImageData(proxyRes.data)
-          console.log('Logo loaded via proxy')
-        } else {
-          throw new Error(proxyRes.detail || 'Proxy error')
+        if (!rawImageData) {
+          const proxyRes = await proxyImageApi(generatedLogo.url)
+          if (proxyRes.status === 'success') {
+            rawImageData = proxyRes.data
+          } else {
+            rawImageData = generatedLogo.url
+          }
         }
+
+        // Composite exact Brand Name onto logo image
+        const finalCompositeUrl = await compositeLogoWithText(
+          rawImageData, 
+          aiBrandName, 
+          selectedStyles.join(' ')
+        )
+
+        setLogoImageData(finalCompositeUrl)
+        setGeneratedLogo(prev => prev ? { ...prev, originalUrl: finalCompositeUrl } : null)
+        console.log('Logo loaded and composited with brand text successfully')
+
       } catch (e) {
         console.error('Logo loading error:', e.message)
-        // Check if it's a Pollinations.ai backend issue (502 Bad Gateway)
-        if (e.message.includes('502')) {
-          setLogoError('Pollinations.ai service is temporarily unavailable. Please try again in a moment.')
-        } else {
-          setLogoError('Could not load image: ' + e.message)
-        }
+        setLogoError('Could not load image: ' + e.message)
       }
     }
     

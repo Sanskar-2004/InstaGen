@@ -133,6 +133,77 @@ export const extractColorsClientSide = (file) => {
   })
 }
 
+// Composite AI Emblem + Exact Brand Name Text into a unified high-res PNG image
+export const compositeLogoWithText = (emblemUrl, brandName, styleName = 'Modern') => {
+  return new Promise((resolve) => {
+    if (!brandName || !brandName.trim()) {
+      return resolve(emblemUrl)
+    }
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+
+        const size = 600
+        canvas.width = size
+        canvas.height = size
+
+        // Elegant dark card background
+        ctx.fillStyle = '#0b0f19'
+        ctx.fillRect(0, 0, size, size)
+
+        // Accent inner border line
+        ctx.strokeStyle = '#1e293b'
+        ctx.lineWidth = 4
+        ctx.strokeRect(16, 16, size - 32, size - 32)
+
+        // Draw Emblem Icon centered
+        const emblemSize = 340
+        const emblemX = (size - emblemSize) / 2
+        const emblemY = 35
+
+        ctx.drawImage(img, emblemX, emblemY, emblemSize, emblemSize)
+
+        // Render Brand Name Text
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+
+        const name = brandName.trim().toUpperCase()
+        let fontSize = 38
+        if (name.length > 15) fontSize = 30
+        if (name.length > 25) fontSize = 22
+
+        ctx.font = `700 ${fontSize}px Inter, system-ui, sans-serif`
+        ctx.fillStyle = '#ffffff'
+
+        const textY = size - 90
+        ctx.fillText(name, size / 2, textY)
+
+        // Subtitle line
+        ctx.font = '500 12px sans-serif'
+        ctx.fillStyle = '#64748b'
+        ctx.fillText('BRAND IDENTITY', size / 2, textY + 36)
+
+        const compositeDataUrl = canvas.toDataURL('image/png')
+        resolve(compositeDataUrl)
+      } catch (err) {
+        console.warn('Canvas composite fallback to raw image:', err)
+        resolve(emblemUrl)
+      }
+    }
+
+    img.onerror = () => {
+      resolve(emblemUrl)
+    }
+
+    img.src = emblemUrl
+  })
+}
+
 // --- API METHODS WITH AUTOMATIC FALLBACK FOR VERCEL / OFFLINE MODE ---
 
 export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern' }) => {
