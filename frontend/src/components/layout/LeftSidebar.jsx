@@ -303,7 +303,7 @@ function LeftSidebar() {
   }
 
   return (
-    <div className="w-80 h-full bg-slate-50/90 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200 select-none">
+    <div className="w-full md:w-80 h-full bg-slate-50/90 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200 select-none">
       
       {/* REDESIGNED LOGO & APP BRAND HEADER */}
       <div className="px-5 py-4 border-b border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xs flex items-center justify-between">

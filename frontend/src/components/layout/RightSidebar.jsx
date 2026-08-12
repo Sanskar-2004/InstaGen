@@ -290,7 +290,7 @@ export default function RightSidebar() {
 
   // --- RENDER ---
   return (
-    <div className="w-72 h-full bg-slate-50 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col font-sans text-slate-800 dark:text-slate-100 shadow-xl z-30 transition-colors duration-300">
+    <div className="w-full md:w-80 h-full bg-slate-50 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col font-sans text-slate-800 dark:text-slate-100 shadow-xl z-30 transition-colors duration-300 select-none">
       
       {/* HEADER */}
       <div className="px-6 pt-6 pb-4">
