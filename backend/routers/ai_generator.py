@@ -42,7 +42,8 @@ class LogoRequest(BaseModel):
     style: str = "Modern"
     styles: list = None  # For mix & match: array of selected styles
     background: str = None  # Optional for backwards compatibility
-    model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
+    model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector, hf-flux, imagen
+    custom_prompt: str = ""  # Free text / custom icon prompt field
 
 # --- STYLE MAP ---
 STYLE_MAP = {
@@ -101,9 +102,10 @@ def build_categorized_style_description(selected_styles):
         moods.add(cat["mood"])
     return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
 
-def build_structured_logo_prompt(brand_name, selected_styles):
+def build_structured_logo_prompt(brand_name, selected_styles, custom_prompt=""):
     style_desc = build_categorized_style_description(selected_styles)
-    return f'Vector logo emblem composed of the initial letterform "{brand_name}", monogram mark of "{brand_name}", style: {style_desc}, minimal icon mark, clean vector art'
+    custom_part = f"{custom_prompt.strip()}, " if custom_prompt and custom_prompt.strip() else ""
+    return f'Vector logo emblem composed of the initial letterform "{brand_name}", monogram mark of "{brand_name}", {custom_part}style: {style_desc}, minimal icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
@@ -298,7 +300,7 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = build_structured_logo_prompt(request.brand_name, selected_styles)
+            optimized_prompt = build_structured_logo_prompt(request.brand_name, selected_styles, request.custom_prompt)
             logger.info(f"📝 Using structured logo prompt: {optimized_prompt[:80]}...")
         
         # Step 3: Generate image URL using Pollinations.ai API with chosen free model and negative prompt

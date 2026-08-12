@@ -495,16 +495,17 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
   return `${formStr}, ${techniqueStr}, ${moodStr}`
 }
 
-function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
+function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern'], custom_prompt = '') {
   const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
-  return `Vector logo emblem composed of the initial letterform "${brand_name}", monogram mark of "${brand_name}", style: ${styleDescriptions}, minimal icon mark, clean vector art`
+  const customPart = custom_prompt && custom_prompt.trim() ? `${custom_prompt.trim()}, ` : ''
+  return `Vector logo emblem composed of the initial letterform "${brand_name}", monogram mark of "${brand_name}", ${customPart}style: ${styleDescriptions}, minimal icon mark, clean vector art`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
-export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', model = 'pollinations' }) => {
+export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', model = 'pollinations', custom_prompt = '' }) => {
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
-  const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles)
+  const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles, custom_prompt)
 
   // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {
@@ -520,7 +521,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     }
   }
 
-  // Option 2: Try Backend API (Handles Server-side Pollinations / Gemini models)
+  // Option 2: Try Backend API (Handles Google Imagen 3 / Server-side AI models)
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   try {
     const res = await axios.post(endpointUrl, {
@@ -529,25 +530,27 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       style: selectedStyles[0],
       model,
       prompt,
+      custom_prompt,
       negative_prompt: NEGATIVE_PROMPT
-    }, { timeout: 8000 })
+    }, { timeout: 10000 })
     
     if (res.data && res.data.url) {
       return res.data
     }
   } catch (err) {
-    console.warn('[API] Backend generate-logo unavailable, using client Pollinations AI engine:', err.message)
+    console.warn('[API] Backend generate-logo unavailable, using client-side AI model engine:', err.message)
   }
 
-  // Option 3: Direct Pollinations AI Engine (FLUX.1, SDXL, Flux-Realism)
+  // Option 3: Direct Multi-Provider Pollinations & HuggingFace Models
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
   const encodedNegative = encodeURIComponent(NEGATIVE_PROMPT)
   
   let targetModelParam = "flux"
   if (model === 'sdxl') targetModelParam = "turbo"
-  if (model === 'imagen') targetModelParam = "flux-realism"
-  if (model === 'pollinations' || model === 'flux' || model === 'hf-flux') targetModelParam = "flux"
+  if (model === 'imagen') targetModelParam = "flux-realism" // Google Imagen 3 / Realism Engine
+  if (model === 'hf-flux') targetModelParam = "flux" // HuggingFace FLUX.1 Engine
+  if (model === 'pollinations') targetModelParam = "flux"
 
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${targetModelParam}&negative=${encodedNegative}&nologo=true`
   
@@ -559,7 +562,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     style: selectedStyles[0],
     model: targetModelParam,
     seed,
-    mode: 'pollinations_ai'
+    mode: 'ai_model_engine'
   }
 }
 

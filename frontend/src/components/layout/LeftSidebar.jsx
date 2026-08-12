@@ -24,8 +24,9 @@ function LeftSidebar() {
 
   // --- AI LOGO STATE ---
   const [aiBrandName, setAiBrandName] = useState('')
+  const [customPrompt, setCustomPrompt] = useState('')
   const [selectedStyles, setSelectedStyles] = useState(['Modern'])
-  const [selectedModel, setSelectedModel] = useState('flux') // 'flux' | 'turbo' | 'unity' | 'flux-realism' | 'vector'
+  const [selectedModel, setSelectedModel] = useState('pollinations')
   const [logoLoading, setLogoLoading] = useState(false)
   const [logoError, setLogoError] = useState('')
   const [generatedLogo, setGeneratedLogo] = useState(null)
@@ -197,7 +198,8 @@ function LeftSidebar() {
             brand_name: aiBrandName, 
             styles: selectedStyles,
             style: selectedStyles[0],
-            model: selectedModel
+            model: selectedModel,
+            custom_prompt: customPrompt
         })
         setGeneratedLogo({ url: res.url, originalUrl: res.url })
     } catch (e) { 
@@ -487,15 +489,16 @@ function LeftSidebar() {
                
                <div className="space-y-3">
                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🌸 Free AI Model Engine</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🤖 Choose AI Model Engine</label>
                     <select 
                       value={selectedModel} 
                       onChange={(e) => setSelectedModel(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 transition-colors"
                     >
-                      <option value="pollinations">🌸 Pollinations FLUX.1 Engine (Recommended)</option>
-                      <option value="sdxl">⚡ Pollinations SDXL Turbo (High-Res 3D)</option>
-                      <option value="imagen">🎨 Pollinations Flux Realism (Photorealistic)</option>
+                      <option value="pollinations">🌸 Pollinations FLUX.1 Engine (Instant Free)</option>
+                      <option value="imagen">🎨 Google Imagen 3 (Photorealistic AI)</option>
+                      <option value="hf-flux">🤗 Hugging Face FLUX.1 (Open Source)</option>
+                      <option value="sdxl">⚡ Stable Diffusion XL (High-Res 3D)</option>
                       <option value="vector">💎 Vector Monogram Engine (100% Brand Letters)</option>
                     </select>
                   </div>
@@ -505,6 +508,13 @@ function LeftSidebar() {
                    <input className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 rounded-lg hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 focus:border-transparent transition-all" 
                           placeholder="e.g. Acme Corp" 
                           value={aiBrandName} onChange={e=>setAiBrandName(e.target.value)} />
+                 </div>
+
+                 <div>
+                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">✍️ Free Text / Custom Prompt (Optional)</label>
+                   <input className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 rounded-lg hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 focus:border-transparent transition-all" 
+                          placeholder="e.g. Minimalist lion head emblem with geometric wings" 
+                          value={customPrompt} onChange={e=>setCustomPrompt(e.target.value)} />
                  </div>
                  
                  <div>
