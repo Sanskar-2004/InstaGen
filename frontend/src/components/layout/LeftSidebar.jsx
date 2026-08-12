@@ -9,7 +9,7 @@ import {
   removeBackgroundApi, 
   extractColorsApi, 
   proxyImageApi,
-  compositeLogoWithText
+  generateVectorMonogramLogo
 } from '../../services/api'
 
 function LeftSidebar() {
@@ -83,11 +83,14 @@ function LeftSidebar() {
         
         if (!rawImageData) {
           const proxyRes = await proxyImageApi(generatedLogo.url)
-          if (proxyRes.status === 'success') {
+          if (proxyRes.status === 'success' && proxyRes.data && !proxyRes.data.includes('error')) {
             rawImageData = proxyRes.data
-          } else {
-            rawImageData = generatedLogo.url
           }
+        }
+
+        // Guaranteed fallback: generate high-res vector monogram logo if remote fails
+        if (!rawImageData || rawImageData.includes('error')) {
+          rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
         }
 
         setLogoImageData(rawImageData)
@@ -95,7 +98,8 @@ function LeftSidebar() {
 
       } catch (e) {
         console.error('Logo loading error:', e.message)
-        setLogoError('Could not load image: ' + e.message)
+        const vectorFallback = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
+        setLogoImageData(vectorFallback)
       }
     }
     

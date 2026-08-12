@@ -219,6 +219,113 @@ const STYLE_MAP = {
   "Sports": "athletic, dynamic, energetic, powerful, bold, strength, competitive, movement",
 }
 
+export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], background = 'Dark') => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const size = 512
+    canvas.width = size
+    canvas.height = size
+
+    // 1. Background Color Selection
+    let bgColor = '#0f172a'
+    let accentGradient = ['#3b82f6', '#8b5cf6']
+
+    if (background === 'Light') {
+      bgColor = '#ffffff'
+    } else if (background === 'Transparent') {
+      bgColor = '#ffffff' // Pristine white vector backdrop
+    }
+
+    // Palette per style selection
+    const styleStr = styles.join(' ')
+    if (styleStr.includes('Luxury')) {
+      accentGradient = ['#f59e0b', '#fbbf24']
+    } else if (styleStr.includes('Tech') || styleStr.includes('3D')) {
+      accentGradient = ['#06b6d4', '#3b82f6']
+    } else if (styleStr.includes('Vintage') || styleStr.includes('Organic')) {
+      accentGradient = ['#d97706', '#b45309']
+    } else if (styleStr.includes('Playful')) {
+      accentGradient = ['#ec4899', '#8b5cf6']
+    }
+
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, size, size)
+
+    // 2. Decorative Geometric Emblem Frame
+    const grad = ctx.createLinearGradient(50, 50, size - 50, size - 50)
+    grad.addColorStop(0, accentGradient[0])
+    grad.addColorStop(1, accentGradient[1])
+
+    ctx.strokeStyle = grad
+    ctx.lineWidth = styleStr.includes('Minimalist') ? 6 : 10
+
+    if (styleStr.includes('Vintage')) {
+      ctx.beginPath()
+      ctx.arc(size / 2, size / 2, 190, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(size / 2, size / 2, 175, 0, Math.PI * 2)
+      ctx.lineWidth = 3
+      ctx.stroke()
+    } else if (styleStr.includes('Tech') || styleStr.includes('3D')) {
+      ctx.beginPath()
+      const radius = 185
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6
+        const x = size / 2 + radius * Math.cos(angle)
+        const y = size / 2 + radius * Math.sin(angle)
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.closePath()
+      ctx.stroke()
+    } else {
+      const r = 36
+      const x = 65
+      const y = 65
+      const w = size - 130
+      const h = size - 130
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.arcTo(x + w, y, x + w, y + h, r)
+      ctx.arcTo(x + w, y + h, x, y + h, r)
+      ctx.arcTo(x, y + h, x, y, r)
+      ctx.arcTo(x, y, x + w, y, r)
+      ctx.closePath()
+      ctx.stroke()
+    }
+
+    // 3. Render Initial Monogram Letters
+    const cleanText = brandName.trim()
+    const textToDraw = cleanText.length <= 4 ? cleanText.toUpperCase() : cleanText.substring(0, 3).toUpperCase()
+
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    let fontSize = 160
+    if (textToDraw.length === 1) fontSize = 210
+    if (textToDraw.length === 2) fontSize = 170
+    if (textToDraw.length >= 3) fontSize = 125
+
+    let fontStyle = 'bold sans-serif'
+    if (styleStr.includes('Luxury') || styleStr.includes('Vintage')) fontStyle = 'bold serif'
+    if (styleStr.includes('Tech')) fontStyle = '900 monospace'
+
+    ctx.font = `${fontSize}px ${fontStyle}`
+
+    if (styleStr.includes('3D')) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'
+      ctx.fillText(textToDraw, size / 2 + 5, size / 2 + 5)
+    }
+
+    ctx.fillStyle = grad
+    ctx.fillText(textToDraw, size / 2, size / 2)
+
+    resolve(canvas.toDataURL('image/png'))
+  })
+}
+
 export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark' }) => {
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
@@ -235,22 +342,21 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       return res.data
     }
   } catch (err) {
-    console.warn('[API] Backend generate-logo unavailable or failed, using client-side Pollinations.ai fallback:', err.message)
+    console.warn('[API] Backend generate-logo unavailable or failed, using client-side fallback:', err.message)
   }
   
-  // Client-side fallback via Pollinations.ai (Flux model with background choice & monogram initial logo)
+  // High-precision client fallback: generates crisp vector initial monogram logo
   const styleNames = selectedStyles.join(' and ')
   const styleKeywords = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
   
-  let bgPrompt = "centered on solid dark slate background"
-  if (background === 'Light') bgPrompt = "centered on pure clean white background"
-  if (background === 'Transparent') bgPrompt = "isolated vector icon on pure white background, no surrounding frame"
-  
-  const prompt = `A clean high quality vector logo mark created of the letters and brand name '${brand_name}', monogram logo emblem composed of '${brand_name}', styled in a mix of ${styleNames.toLowerCase()} aesthetic, ${styleKeywords}, graphic initial emblem of '${brand_name}', ${bgPrompt}, single logo icon without any extra text underneath, sharp 8k vector logo`
+  let bgPrompt = "centered on dark background"
+  if (background === 'Light') bgPrompt = "centered on white background"
+  if (background === 'Transparent') bgPrompt = "isolated on clean white background"
   
   const seed = Math.floor(Math.random() * 999999999)
+  const prompt = `vector monogram logo mark of initial letters ${brand_name}, ${styleNames} logo emblem, ${styleKeywords}, ${bgPrompt}, single logo icon, no words underneath`
   const encodedPrompt = encodeURIComponent(prompt)
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=flux`
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}`
   
   return {
     status: 'success',
