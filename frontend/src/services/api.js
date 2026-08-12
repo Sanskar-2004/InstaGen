@@ -228,11 +228,9 @@ const STYLE_MAP = {
 }
 
 // --- COMPOUND STYLE FUSION ENGINE ---
-function buildFusedStyleConfig(styles = ['Modern'], background = 'Dark') {
-  const isLight = background === 'Light'
-  
+function buildFusedStyleConfig(styles = ['Modern']) {
   const config = {
-    gradientColors: isLight ? ['#0f172a', '#3b82f6'] : ['#3b82f6', '#8b5cf6'],
+    gradientColors: ['#3b82f6', '#8b5cf6'],
     fontFamily: 'system-ui, sans-serif',
     fontWeight: '900',
     fontStyle: 'normal',
@@ -303,7 +301,7 @@ function buildFusedStyleConfig(styles = ['Modern'], background = 'Dark') {
   return config
 }
 
-export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], background = 'Dark') => {
+export const generateVectorMonogramLogo = (brandName, styles = ['Modern']) => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
@@ -318,18 +316,11 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], backg
     }
 
     // 1. Background Settings
-    let bgColor = '#0b0f19'
-    if (background === 'Light') {
-      bgColor = '#f8fafc'
-    } else if (background === 'Transparent') {
-      bgColor = '#ffffff'
-    }
-
-    ctx.fillStyle = bgColor
+    ctx.fillStyle = '#0b0f19'
     ctx.fillRect(0, 0, size, size)
 
     // 2. Build Fused Style Configuration
-    const cfg = buildFusedStyleConfig(styles, background)
+    const cfg = buildFusedStyleConfig(styles)
     
     // Create multi-stop gradient
     const grad = ctx.createLinearGradient(60, 60, size - 60, size - 60)
@@ -436,7 +427,7 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], backg
 
     // Render 3D Extruded Shadow Layer
     if (cfg.has3DShadow) {
-      ctx.fillStyle = background === 'Light' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.65)'
+      ctx.fillStyle = 'rgba(0,0,0,0.65)'
       ctx.fillText(textToDraw, size / 2 + cfg.shadowOffset, size / 2 + cfg.shadowOffset)
       ctx.fillText(textToDraw, size / 2 + (cfg.shadowOffset / 2), size / 2 + (cfg.shadowOffset / 2))
     }
@@ -523,7 +514,6 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       brand_name,
       styles: selectedStyles,
       style: selectedStyles[0],
-      background,
       model,
       prompt,
       negative_prompt: NEGATIVE_PROMPT
@@ -554,7 +544,6 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     brand_name,
     styles: selectedStyles,
     style: selectedStyles[0],
-    background,
     model,
     seed,
     mode: 'multi_provider_ai'
