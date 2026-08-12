@@ -9,7 +9,6 @@ function CanvasEditor() {
   const [bgColor, setBgColor] = useState('#f5f5f5')
   const [initialized, setInitialized] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [showSafeZones, setShowSafeZones] = useState(true)
 
   // Check dark mode on mount and when it changes
   React.useEffect(() => {
@@ -108,11 +107,6 @@ function CanvasEditor() {
     // Run immediately and again after delay
     fixTransparency()
     setTimeout(fixTransparency, 500)
-
-    // Add safe zones overlay if enabled
-    if (showSafeZones) {
-      addSafeZonesOverlay(canvas)
-    }
   }
 
   const addText = () => {
