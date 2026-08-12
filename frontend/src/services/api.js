@@ -395,19 +395,46 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], backg
 }
 
 export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark' }) => {
+  const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
   
-  // Generate 100% accurate vector monogram logo of exact brand name (e.g. 'SD')
-  const logoDataUrl = await generateVectorMonogramLogo(brand_name, selectedStyles, background)
+  // 1. Try backend AI generation if server is configured
+  try {
+    const res = await axios.post(endpointUrl, {
+      brand_name,
+      styles: selectedStyles,
+      style: selectedStyles[0],
+      background
+    }, { timeout: 12000 })
+    
+    if (res.data && res.data.url) {
+      return res.data
+    }
+  } catch (err) {
+    console.warn('[API] Backend generate-logo unavailable, using rich AI image generator:', err.message)
+  }
+  
+  // 2. Rich AI Image Generator via Pollinations API
+  const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
+  
+  let bgPrompt = "centered on dark slate background"
+  if (background === 'Light') bgPrompt = "centered on clean white background"
+  if (background === 'Transparent') bgPrompt = "isolated graphic emblem on solid white background"
+  
+  const seed = Math.floor(Math.random() * 999999999)
+  const prompt = `A high-end professional 3D vector logo emblem featuring the initials ${brand_name}, ${selectedStyles.join(' ')} style, ${styleDescriptors}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, ${bgPrompt}, sharp focus`
+  const encodedPrompt = encodeURIComponent(prompt)
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&nologo=true`
   
   return {
     status: 'success',
-    url: logoDataUrl,
+    url: imageUrl,
     brand_name,
     styles: selectedStyles,
     style: selectedStyles[0],
     background,
-    mode: 'vector_monogram'
+    seed,
+    mode: 'ai_image_generator'
   }
 }
 
