@@ -1,17 +1,35 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { fabric } from 'fabric'
 
 const CANVAS_WIDTH = 1080
 const CANVAS_HEIGHT = 1920
 
 function CanvasEditor() {
-  const [zoomLevel, setZoomLevel] = useState(0.5)
+  const [zoomLevel, setZoomLevel] = useState(0.35) // Default 35% fits 9:16 canvas cleanly into view
   const [bgColor, setBgColor] = useState('#f5f5f5')
   const [initialized, setInitialized] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  
+  const canvasAreaRef = useRef(null)
 
-  // Check dark mode on mount and when it changes
-  React.useEffect(() => {
+  // Auto-fit canvas inside viewport container without overflow
+  const fitToScreen = useCallback(() => {
+    if (!canvasAreaRef.current) return
+    const rect = canvasAreaRef.current.getBoundingClientRect()
+    const padding = 48 // 24px padding on each side
+    const availWidth = rect.width - padding
+    const availHeight = rect.height - padding
+
+    if (availWidth > 0 && availHeight > 0) {
+      const scaleX = availWidth / CANVAS_WIDTH
+      const scaleY = availHeight / CANVAS_HEIGHT
+      const fitScale = Math.min(scaleX, scaleY, 0.85)
+      setZoomLevel(Math.max(0.15, Math.round(fitScale * 100) / 100))
+    }
+  }, [])
+
+  // Check dark mode on mount and watch for theme changes
+  useEffect(() => {
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark')
       setIsDarkMode(isDark)
@@ -19,58 +37,50 @@ function CanvasEditor() {
     
     checkDarkMode()
     
-    // Watch for dark mode changes
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     
     return () => observer.disconnect()
   }, [])
 
-  // CALLBACK REF: This runs EXACTLY ONCE when DOM is ready, bypassing all timing issues
-  const handleCanvasContainerRef = (containerElement) => {
-    // Guard 1: Skip if already initialized
-    if (initialized || !containerElement) {
-      console.log('🛡️ Skipping: Already initialized or no container')
-      return
+  // Auto-fit zoom on initial mount & window resize
+  useEffect(() => {
+    const timer = setTimeout(fitToScreen, 100)
+    window.addEventListener('resize', fitToScreen)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', fitToScreen)
     }
+  }, [fitToScreen])
 
-    // Guard 2: Skip if canvas already exists
-    if (window.fabricCanvas) {
-      console.log('🛡️ Skipping: Canvas already exists in window')
-      return
-    }
+  // CALLBACK REF: Runs when container DOM element is ready
+  const handleCanvasContainerRef = (containerElement) => {
+    if (initialized || !containerElement) return
+    if (window.fabricCanvas) return
 
     console.log('🔨 CALLBACK REF FIRED: Initializing canvas NOW')
-
-    // Clear any existing content
     containerElement.innerHTML = ''
 
-    // Create a FRESH canvas element
     const canvasElement = document.createElement('canvas')
     canvasElement.id = 'main-fabric-canvas'
     canvasElement.width = CANVAS_WIDTH
     canvasElement.height = CANVAS_HEIGHT
 
-    // ARMOR PLATE: Override Tailwind's preflight CSS with !important inline styles
+    // Critical inline overrides for Fabric.js preflight compatibility
     canvasElement.style.cssText = `
       display: block !important;
       width: ${CANVAS_WIDTH}px !important;
       height: ${CANVAS_HEIGHT}px !important;
       max-width: none !important;
-      height: ${CANVAS_HEIGHT}px !important;
-      border: 2px solid #999999 !important;
-      border-radius: 4px !important;
+      border: 2px solid ${isDarkMode ? '#475569' : '#cbd5e1'} !important;
+      border-radius: 8px !important;
       cursor: default !important;
       background-color: #f5f5f5 !important;
       background: #f5f5f5 !important;
     `
 
-    // Inject into container
     containerElement.appendChild(canvasElement)
 
-    console.log('✅ Canvas element injected into DOM')
-
-    // Initialize Fabric
     const canvas = new fabric.Canvas(canvasElement, {
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
@@ -79,10 +89,6 @@ function CanvasEditor() {
       preserveObjectStacking: true
     })
 
-    // Set initial text color based on dark mode
-    const textColor = isDarkMode ? '#ffffff' : '#1f2937'
-
-    // Force render cycle
     canvas.setWidth(CANVAS_WIDTH)
     canvas.setHeight(CANVAS_HEIGHT)
     canvas.renderAll()
@@ -90,41 +96,30 @@ function CanvasEditor() {
     window.fabricCanvas = canvas
     setInitialized(true)
 
-    console.log('✅ Fabric canvas initialized successfully')
-    console.log('Canvas dimensions:', canvas.width, 'x', canvas.height)
-    console.log('Canvas element actual size:', canvasElement.width, 'x', canvasElement.height)
-
-    // FIX TRANSPARENCY: Force upper-canvas to be transparent
+    // Force upper-canvas transparency
     const fixTransparency = () => {
       const upperCanvas = document.querySelector('.upper-canvas')
       if (upperCanvas) {
         upperCanvas.style.background = 'transparent'
         upperCanvas.style.backgroundColor = 'transparent'
-        console.log('✅ Upper canvas transparency fixed')
       }
     }
     
-    // Run immediately and again after delay
     fixTransparency()
-    setTimeout(fixTransparency, 500)
+    setTimeout(fixTransparency, 300)
+    setTimeout(fitToScreen, 150)
   }
 
   const addText = () => {
-    console.log('📝 Add Text clicked')
     const canvas = window.fabricCanvas
-    
-    if (!canvas) {
-      console.error('❌ Canvas is not initialized!')
-      alert('Canvas not ready. Please refresh the page.')
-      return
-    }
+    if (!canvas) return
 
     try {
       const textColor = isDarkMode ? '#ffffff' : '#1f2937'
       const text = new fabric.IText('Double click to edit', {
         left: 100,
         top: 100,
-        fontSize: 32,
+        fontSize: 36,
         fill: textColor,
         fontWeight: 'bold',
         editable: true,
@@ -135,21 +130,14 @@ function CanvasEditor() {
       canvas.add(text)
       canvas.setActiveObject(text)
       canvas.renderAll()
-      
-      console.log('✅ Text added. Total objects:', canvas.getObjects().length)
     } catch (err) {
       console.error('❌ Error adding text:', err)
     }
   }
 
   const addRectangle = () => {
-    console.log('▭ Add Rect clicked')
     const canvas = window.fabricCanvas
-    
-    if (!canvas) {
-      console.error('❌ Canvas is not initialized!')
-      return
-    }
+    if (!canvas) return
 
     try {
       const rectColor = isDarkMode ? '#60a5fa' : '#3b82f6'
@@ -157,31 +145,26 @@ function CanvasEditor() {
       const rect = new fabric.Rect({
         left: 200,
         top: 200,
-        width: 150,
-        height: 150,
+        width: 180,
+        height: 180,
         fill: rectColor,
         stroke: strokeColor,
-        strokeWidth: 2
+        strokeWidth: 2,
+        rx: 8,
+        ry: 8
       })
       
       canvas.add(rect)
       canvas.setActiveObject(rect)
       canvas.renderAll()
-      
-      console.log('✅ Rectangle added. Total objects:', canvas.getObjects().length)
     } catch (err) {
       console.error('❌ Error adding rectangle:', err)
     }
   }
 
   const addCircle = () => {
-    console.log('● Add Circle clicked')
     const canvas = window.fabricCanvas
-    
-    if (!canvas) {
-      console.error('❌ Canvas is not initialized!')
-      return
-    }
+    if (!canvas) return
 
     try {
       const circleColor = isDarkMode ? '#f87171' : '#ef4444'
@@ -189,7 +172,7 @@ function CanvasEditor() {
       const circle = new fabric.Circle({
         left: 300,
         top: 300,
-        radius: 75,
+        radius: 90,
         fill: circleColor,
         stroke: strokeColor,
         strokeWidth: 2
@@ -198,44 +181,28 @@ function CanvasEditor() {
       canvas.add(circle)
       canvas.setActiveObject(circle)
       canvas.renderAll()
-      
-      console.log('✅ Circle added. Total objects:', canvas.getObjects().length)
     } catch (err) {
       console.error('❌ Error adding circle:', err)
     }
   }
 
   const deleteSelected = () => {
-    console.log('🗑️ Delete clicked')
     const canvas = window.fabricCanvas
-    
-    if (!canvas) {
-      console.error('❌ Canvas is not initialized!')
-      return
-    }
+    if (!canvas) return
 
     const activeObj = canvas.getActiveObject()
     if (activeObj) {
       canvas.remove(activeObj)
       canvas.renderAll()
-      console.log('✅ Object deleted. Total objects:', canvas.getObjects().length)
-    } else {
-      console.log('⚠️ No object selected')
     }
   }
 
   const clearCanvas = () => {
-    console.log('🧹 Clear clicked')
     const canvas = window.fabricCanvas
-    
-    if (!canvas) {
-      console.error('❌ Canvas is not initialized!')
-      return
-    }
+    if (!canvas) return
 
     if (confirm('Clear all objects from canvas?')) {
       canvas.clear()
-      console.log('✅ Canvas cleared')
     }
   }
 
@@ -245,172 +212,152 @@ function CanvasEditor() {
     const canvas = window.fabricCanvas
     if (canvas) {
       canvas.setBackgroundColor(color, () => canvas.renderAll())
-      console.log('✅ Background color changed to:', color)
     }
   }
 
-  const zoomIn = () => setZoomLevel(prev => Math.min(prev + 0.1, 3))
-  const zoomOut = () => setZoomLevel(prev => Math.max(prev - 0.1, 0.1))
-  const resetZoom = () => setZoomLevel(0.5)
-
-  const containerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    width: '100%',
-    backgroundColor: isDarkMode ? '#1a1b26' : '#f3f4f6',
-    transition: 'background-color 0.3s ease'
-  }
-
-  const toolbarStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '16px',
-    backgroundColor: isDarkMode ? '#0f1117' : '#ffffff',
-    borderBottom: `1px solid ${isDarkMode ? '#30363d' : '#d1d5db'}`,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    zIndex: 20,
-    flexShrink: 0,
-    transition: 'background-color 0.3s ease, border-color 0.3s ease'
-  }
-
-  const buttonStyle = {
-    padding: '8px 16px',
-    borderRadius: '4px',
-    border: 'none',
-    color: '#ffffff',
-    fontWeight: 500,
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'opacity 0.2s ease'
-  }
-
-  const canvasAreaStyle = {
-    flex: 1,
-    width: '100%',
-    backgroundColor: isDarkMode ? '#1a1b26' : '#f9fafb',
-    overflow: 'auto',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '32px',
-    transition: 'background-color 0.3s ease'
-  }
-
-  const canvasWrapperStyle = {
-    transform: `scale(${zoomLevel})`,
-    transformOrigin: 'center center',
-    display: 'inline-block',
-    boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-    borderRadius: '4px'
-  }
-
-  const zoomControlsStyle = {
-    position: 'fixed',
-    bottom: '32px',
-    right: '32px',
-    zIndex: 50,
-    display: 'flex',
-    gap: '8px',
-    backgroundColor: isDarkMode ? '#0f1117' : '#ffffff',
-    padding: '12px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-    border: `1px solid ${isDarkMode ? '#30363d' : '#e5e7eb'}`,
-    transition: 'background-color 0.3s ease, border-color 0.3s ease'
-  }
+  const zoomIn = () => setZoomLevel(prev => Math.min(prev + 0.05, 2.5))
+  const zoomOut = () => setZoomLevel(prev => Math.max(prev - 0.05, 0.1))
+  const resetZoomTo100 = () => setZoomLevel(1.0)
 
   return (
-    <div style={containerStyle}>
+    <div className="flex flex-col h-full w-full bg-slate-100 dark:bg-slate-900 transition-colors duration-200">
+      
       {/* TOOLBAR */}
-      <div style={toolbarStyle}>
-        <button 
-          onClick={addText} 
-          style={{...buttonStyle, backgroundColor: '#3b82f6'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
-        >
-          + Text
-        </button>
-        <button 
-          onClick={addRectangle} 
-          style={{...buttonStyle, backgroundColor: '#10b981'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
-        >
-          + Rect
-        </button>
-        <button 
-          onClick={addCircle} 
-          style={{...buttonStyle, backgroundColor: '#ef4444'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-        >
-          + Circle
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-xs z-20 flex-shrink-0">
         
-        <div style={{borderLeft: `1px solid ${isDarkMode ? '#30363d' : '#d1d5db'}`, marginLeft: '8px', marginRight: '8px', height: '24px'}}></div>
-        
-        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <span style={{fontSize: '14px', fontWeight: 500, color: isDarkMode ? '#e2e8f0' : '#374151'}}>BG:</span>
-          <input 
-            type="color" 
-            value={bgColor} 
-            onChange={changeBackgroundColor}
-            style={{height: '32px', width: '48px', padding: '4px', border: `1px solid ${isDarkMode ? '#30363d' : '#d1d5db'}`, borderRadius: '4px', cursor: 'pointer'}}
-          />
+        {/* LEFT TOOL GROUP: OBJECT ADDERS */}
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={addText} 
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium text-xs shadow-xs transition-all duration-150"
+            title="Add Text Layer"
+          >
+            <span>📝</span>
+            <span>+ Text</span>
+          </button>
+
+          <button 
+            onClick={addRectangle} 
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-medium text-xs shadow-xs transition-all duration-150"
+            title="Add Rectangle Shape"
+          >
+            <span>▭</span>
+            <span>+ Rect</span>
+          </button>
+
+          <button 
+            onClick={addCircle} 
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-medium text-xs shadow-xs transition-all duration-150"
+            title="Add Circle Shape"
+          >
+            <span>●</span>
+            <span>+ Circle</span>
+          </button>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
+
+          {/* BG COLOR SELECTOR */}
+          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">BG:</span>
+            <input 
+              type="color" 
+              value={bgColor} 
+              onChange={changeBackgroundColor}
+              className="h-6 w-8 rounded cursor-pointer border border-slate-300 dark:border-slate-500 bg-transparent p-0"
+              title="Change Canvas Background Color"
+            />
+          </div>
         </div>
 
-        <div style={{flex: 1}}></div>
-        
-        <button 
-          onClick={deleteSelected} 
-          style={{...buttonStyle, backgroundColor: '#f97316'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#ea580c'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#f97316'}
-        >
-          Delete
-        </button>
-        <button 
-          onClick={clearCanvas} 
-          style={{...buttonStyle, backgroundColor: '#dc2626'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#b91c1c'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#dc2626'}
-        >
-          Clear All
-        </button>
+        {/* CENTER INFO BADGE */}
+        <div className="hidden lg:flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-[11px] font-mono">
+          <span>📐 Canvas: 1080 × 1920</span>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <span>9:16 Story/Reel</span>
+        </div>
+
+        {/* RIGHT ACTION GROUP */}
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={deleteSelected} 
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs shadow-xs transition-all duration-150"
+            title="Delete Selected Object"
+          >
+            <span>🗑️</span>
+            <span>Delete</span>
+          </button>
+
+          <button 
+            onClick={clearCanvas} 
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-xs shadow-xs transition-all duration-150"
+            title="Clear All Canvas Content"
+          >
+            <span>🧹</span>
+            <span>Clear</span>
+          </button>
+        </div>
+
       </div>
 
-      {/* CANVAS AREA */}
-      <div style={canvasAreaStyle}>
-        <div style={canvasWrapperStyle} ref={handleCanvasContainerRef}>
-          {/* Canvas will be injected here by CALLBACK REF when DOM is ready */}
+      {/* CANVAS WORKSPACE AREA */}
+      <div 
+        ref={canvasAreaRef}
+        className="flex-1 w-full bg-slate-200/70 dark:bg-slate-900/90 overflow-auto flex justify-center items-center p-6 relative transition-colors duration-200"
+      >
+        <div 
+          style={{
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'center center',
+            transition: 'transform 0.15s ease-out'
+          }}
+          className="inline-block shadow-2xl rounded-lg overflow-hidden bg-white"
+          ref={handleCanvasContainerRef}
+        >
+          {/* Canvas injected here by CALLBACK REF */}
         </div>
       </div>
 
-      {/* ZOOM CONTROLS */}
-      <div style={zoomControlsStyle}>
+      {/* FLOATING ZOOM CONTROLS */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center space-x-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200">
         <button 
           onClick={zoomOut}
-          style={{width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isDarkMode ? '#21262d' : '#e5e7eb', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '18px', color: isDarkMode ? '#e2e8f0' : '#1f2937', transition: 'background-color 0.2s ease'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = isDarkMode ? '#30363d' : '#d1d5db'}
-          onMouseOut={(e) => e.target.style.backgroundColor = isDarkMode ? '#21262d' : '#e5e7eb'}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-sm transition-colors"
+          title="Zoom Out (-5%)"
         >
           −
         </button>
-        <span style={{width: '64px', textAlign: 'center', fontFamily: 'monospace', fontSize: '14px', color: isDarkMode ? '#e2e8f0' : '#1f2937'}}>
+
+        <span className="w-12 text-center font-mono text-xs font-bold text-slate-700 dark:text-slate-200 select-none">
           {Math.round(zoomLevel * 100)}%
         </span>
+
         <button 
           onClick={zoomIn}
-          style={{width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isDarkMode ? '#21262d' : '#e5e7eb', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '18px', color: isDarkMode ? '#e2e8f0' : '#1f2937', transition: 'background-color 0.2s ease'}}
-          onMouseOver={(e) => e.target.style.backgroundColor = isDarkMode ? '#30363d' : '#d1d5db'}
-          onMouseOut={(e) => e.target.style.backgroundColor = isDarkMode ? '#21262d' : '#e5e7eb'}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-sm transition-colors"
+          title="Zoom In (+5%)"
         >
           +
         </button>
+
+        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
+
+        <button 
+          onClick={fitToScreen}
+          className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/80 text-indigo-600 dark:text-indigo-300 font-semibold text-xs transition-colors"
+          title="Auto Fit to Screen Height"
+        >
+          🎯 Fit
+        </button>
+
+        <button 
+          onClick={resetZoomTo100}
+          className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs transition-colors"
+          title="Zoom to 100%"
+        >
+          100%
+        </button>
       </div>
+
     </div>
   )
 }
