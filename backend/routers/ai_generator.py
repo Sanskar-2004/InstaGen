@@ -44,6 +44,20 @@ class LogoRequest(BaseModel):
     background: str = None  # Optional for backwards compatibility
     model: str = "flux"  # AI Model choice: flux, turbo, unity, flux-realism, vector
 
+# --- STYLE MAP ---
+STYLE_MAP = {
+    "Modern": "minimalist, sleek, vector logo, flat design, clean lines, contemporary, professional",
+    "Vintage": "retro, 70s aesthetic, distressed texture, badge emblem, nostalgic, warm colors, classic",
+    "Minimalist": "simple, negative space, single line icon, monochrome, bold sans-serif, stark",
+    "Luxury": "premium, gold accents, sophisticated, elegant, high-end, exclusive, upscale serif",
+    "Tech": "futuristic, neon glow, cyberpunk, circuit lines, digital gradient, sci-fi, high-tech",
+    "Playful": "cute, vibrant colors, friendly, cheerful, fun, cartoon style, rounded shapes",
+    "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, hand-drawn, sustainable",
+    "Abstract": "abstract shapes, expressionist, fragmented forms, asymmetric, bold color blocks",
+    "3D": "three-dimensional, realistic shading, glossy, metallic, depth, sculptural, isometric",
+    "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette",
+}
+
 # --- CATEGORIZED STYLE SYSTEM ---
 STYLE_CATEGORIES = {
     "Modern": {"form": "minimalist geometric", "technique": "flat vector design", "mood": "sleek modern"},
@@ -70,8 +84,8 @@ def build_categorized_style_description(selected_styles):
     return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
 
 def build_structured_logo_prompt(brand_name, selected_styles):
-    style_str = " ".join(selected_styles)
-    return f'Vector logo emblem of letters "{brand_name}", {style_str} style, minimal icon mark, clean vector art'
+    style_keywords = ", ".join([STYLE_MAP.get(s, STYLE_MAP["Modern"]) for s in selected_styles])
+    return f'Vector logo emblem of letters "{brand_name}", style: {style_keywords}, minimal icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 

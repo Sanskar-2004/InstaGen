@@ -215,16 +215,16 @@ export const compositeLogoWithText = (emblemUrl, brandName, styles = ['Modern'])
 // --- API METHODS WITH AUTOMATIC FALLBACK FOR VERCEL / OFFLINE MODE ---
 
 const STYLE_MAP = {
-  "Modern": "minimalist, sleek, vector art, flat design, clean lines, contemporary, professional",
-  "Vintage": "retro, 70s aesthetic, vintage badge, nostalgic, warm colors, classic, timeless",
-  "Minimalist": "minimal, simple, geometric shapes, monochrome, icon-like, bold sans-serif, stark",
-  "Luxury": "luxurious, premium, gold accents, sophisticated, elegant, high-end, exclusive, upscale",
-  "Tech": "futuristic, neon, cyberpunk, geometric shapes, circuit lines, gradient, tech startup",
-  "Playful": "cute, vibrant colors, friendly, cheerful, fun, cartoon style, energetic, approachable",
-  "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, sustainable, green",
-  "Abstract": "abstract art, artistic, creative, unique, contemporary, expressionist, modern art",
-  "3D": "three-dimensional, realistic shading, depth, glossy, metallic, modern, sculptural",
-  "Sports": "athletic, dynamic, energetic, powerful, bold, strength, competitive, movement",
+  "Modern": "minimalist, sleek, vector logo, flat design, clean lines, contemporary, professional",
+  "Vintage": "retro, 70s aesthetic, distressed texture, badge emblem, nostalgic, warm colors, classic",
+  "Minimalist": "simple, negative space, single line icon, monochrome, bold sans-serif, stark",
+  "Luxury": "premium, gold accents, sophisticated, elegant, high-end, exclusive, upscale serif",
+  "Tech": "futuristic, neon glow, cyberpunk, circuit lines, digital gradient, sci-fi, high-tech",
+  "Playful": "cute, vibrant colors, friendly, cheerful, fun, cartoon style, rounded shapes",
+  "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, hand-drawn, sustainable",
+  "Abstract": "abstract shapes, expressionist, fragmented forms, asymmetric, bold color blocks",
+  "3D": "three-dimensional, realistic shading, glossy, metallic, depth, sculptural, isometric",
+  "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette",
 }
 
 // --- COMPOUND STYLE FUSION ENGINE ---
@@ -478,8 +478,8 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
 }
 
 function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
-  const styleStr = selectedStyles.join(' ')
-  return `Vector logo emblem of letters "${brand_name}", ${styleStr} style, minimal icon mark, clean vector art`
+  const styleKeywords = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
+  return `Vector logo emblem of letters "${brand_name}", style: ${styleKeywords}, minimal icon mark, clean vector art`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
