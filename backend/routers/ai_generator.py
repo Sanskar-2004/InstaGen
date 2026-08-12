@@ -254,8 +254,10 @@ Return ONLY the single line prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            style_fusion_title = " + ".join(selected_styles)
-            optimized_prompt = f"A hybrid 3D vector monogram logo mark of the letters '{request.brand_name}'. Styled in a fused aesthetic of {style_fusion_title} ({style_keywords}), {bg_prompt}"
+            style_descriptions = " seamlessly blended with ".join([
+                f"{s.lower()} aesthetic ({STYLE_MAP.get(s, STYLE_MAP['Modern'])})" for s in selected_styles
+            ])
+            optimized_prompt = f"A professional vector logo mark created of the brand letters '{request.brand_name}', monogram logo emblem composed of '{request.brand_name}', styled in a mix of {style_descriptions}, graphic initial emblem of '{request.brand_name}', {bg_prompt}, single logo mark without any extra text underneath, sharp 8k vector logo"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
         # Step 3: Generate image URL using Pollinations.ai API with chosen free model

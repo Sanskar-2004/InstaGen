@@ -457,13 +457,17 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
   const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
 
-  let bgPrompt = "centered on dark background"
-  if (background === 'Light') bgPrompt = "centered on clean white background"
-  if (background === 'Transparent') bgPrompt = "isolated on clean white background"
+  let bgPrompt = "centered on solid dark slate background"
+  if (background === 'Light') bgPrompt = "centered on pure clean white background"
+  if (background === 'Transparent') bgPrompt = "isolated vector icon on pure white background, no frame"
 
-  // AI Style Fusion Prompt: explicitly instructs AI models on blending all selected styles
-  const styleFusionTitle = selectedStyles.join(' + ')
-  const prompt = `A hybrid 3D vector monogram logo mark of the letters "${brand_name}". Styled in a fused aesthetic of ${styleFusionTitle} (${styleDescriptors}), ${bgPrompt}`
+  // Detailed style descriptions prompt for raw AI monogram logo creation
+  const styleDescriptions = selectedStyles.map(s => {
+    const desc = STYLE_MAP[s] || STYLE_MAP["Modern"]
+    return `${s.toLowerCase()} aesthetic (${desc})`
+  }).join(' seamlessly blended with ')
+
+  const prompt = `A professional vector logo mark created of the brand letters '${brand_name}', monogram logo emblem composed of '${brand_name}', styled in a mix of ${styleDescriptions}, graphic initial emblem of '${brand_name}', ${bgPrompt}, single logo mark without any extra text underneath, sharp 8k vector logo`
 
   // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {

@@ -93,13 +93,10 @@ function LeftSidebar() {
         // Guaranteed fallback: generate high-res vector monogram logo if remote fails
         if (!rawImageData || rawImageData.includes('error')) {
           rawImageData = await generateVectorMonogramLogo(aiBrandName, selectedStyles, logoBackground)
-        } else {
-          // Composite brand text letters onto AI graphic emblem using Compound Style Fusion Configuration
-          rawImageData = await compositeLogoWithText(rawImageData, aiBrandName, selectedStyles)
         }
 
         setLogoImageData(rawImageData)
-        console.log('Logo image loaded and composited successfully')
+        console.log('Pure AI logo image loaded successfully')
 
       } catch (e) {
         console.error('Logo loading error:', e.message)
