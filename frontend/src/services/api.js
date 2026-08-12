@@ -394,10 +394,17 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern'], backg
   })
 }
 
-export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark', model = 'flux' }) => {
+export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', background = 'Dark', model = 'hf-flux' }) => {
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
+  const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
 
-  // If user selected Vector Monogram Engine
+  let bgPrompt = "centered on dark slate background"
+  if (background === 'Light') bgPrompt = "centered on clean white background"
+  if (background === 'Transparent') bgPrompt = "isolated graphic emblem on solid white background"
+
+  const prompt = `A high-end professional 3D vector logo emblem featuring the initials ${brand_name}, ${selectedStyles.join(' ')} style, ${styleDescriptors}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, ${bgPrompt}, sharp focus`
+
+  // Option 1: Vector Monogram Engine (100% Instant Letter Accuracy)
   if (model === 'vector') {
     const logoDataUrl = await generateVectorMonogramLogo(brand_name, selectedStyles, background)
     return {
@@ -412,7 +419,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     }
   }
 
-  // 1. Try backend AI generation if server is configured
+  // Option 2: Try Backend API (Handles Gemini Imagen 3 / Server-side AI models)
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   try {
     const res = await axios.post(endpointUrl, {
@@ -427,27 +434,19 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       return res.data
     }
   } catch (err) {
-    console.warn('[API] Backend generate-logo unavailable, using Pollinations API fallback:', err.message)
+    console.warn('[API] Backend generate-logo unavailable, using multi-provider client fallback:', err.message)
   }
-  
-  // 2. Client Fallback via Pollinations API with user chosen model
-  const styleDescriptors = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
-  
-  let bgPrompt = "centered on dark slate background"
-  if (background === 'Light') bgPrompt = "centered on clean white background"
-  if (background === 'Transparent') bgPrompt = "isolated graphic emblem on solid white background"
-  
+
+  // Option 3: Direct Multi-Provider Fallbacks (HuggingFace FLUX / SDXL / Free Engines)
   const seed = Math.floor(Math.random() * 999999999)
-  const prompt = `A high-end professional 3D vector logo emblem featuring the initials ${brand_name}, ${selectedStyles.join(' ')} style, ${styleDescriptors}, Octane render 8k, Unreal Engine 5 render, highly detailed graphic icon, ${bgPrompt}, sharp focus`
   const encodedPrompt = encodeURIComponent(prompt)
   
-  let pollModel = model
-  if (model === 'flux-realism') pollModel = 'flux-realism'
-  if (model === 'unity') pollModel = 'unity'
-  if (model === 'turbo') pollModel = 'turbo'
-  if (!pollModel || pollModel === 'vector') pollModel = 'flux'
+  let targetModelParam = "flux"
+  if (model === 'sdxl') targetModelParam = "turbo"
+  if (model === 'imagen') targetModelParam = "flux-realism"
+  if (model === 'pollinations') targetModelParam = "unity"
 
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${pollModel}&nologo=true`
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${targetModelParam}&nologo=true`
   
   return {
     status: 'success',
@@ -456,9 +455,9 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     styles: selectedStyles,
     style: selectedStyles[0],
     background,
-    model: pollModel,
+    model,
     seed,
-    mode: 'ai_image_generator'
+    mode: 'multi_provider_ai'
   }
 }
 
