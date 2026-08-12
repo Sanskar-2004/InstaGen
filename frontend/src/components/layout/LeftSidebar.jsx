@@ -496,9 +496,9 @@ function LeftSidebar() {
                       className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 transition-colors"
                     >
                       <option value="pollinations">🌸 Pollinations FLUX.1 Engine (Instant Free)</option>
+                      <option value="sdxl">⚡ Stable Diffusion XL (SDXL Turbo by Stability AI)</option>
                       <option value="imagen">🎨 Google Imagen 3 (Photorealistic AI)</option>
                       <option value="hf-flux">🤗 Hugging Face FLUX.1 (Open Source)</option>
-                      <option value="sdxl">⚡ Stable Diffusion XL (High-Res 3D)</option>
                       <option value="vector">💎 Vector Monogram Engine (100% Brand Letters)</option>
                     </select>
                   </div>

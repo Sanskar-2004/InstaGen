@@ -305,14 +305,24 @@ Return ONLY the single line prompt."""
         
         # Step 3: Generate image URL using Pollinations.ai API with chosen free model and negative prompt
         seed = random.randint(1, 999999999)
-        poll_model = request.model if request.model in ["flux", "turbo", "unity", "flux-realism"] else "flux"
+        model_mapping = {
+            "sdxl": "turbo",           # Stable Diffusion XL Turbo (Stability AI)
+            "imagen": "flux-realism",     # Google Imagen 3 Photorealistic Engine
+            "hf-flux": "flux",         # HuggingFace FLUX.1 Engine
+            "pollinations": "flux",
+            "flux": "flux",
+            "turbo": "turbo",
+            "unity": "unity",
+            "flux-realism": "flux-realism"
+        }
+        poll_model = model_mapping.get(request.model, "flux")
         
         import urllib.parse
         encoded_prompt = urllib.parse.quote(optimized_prompt)
         encoded_negative = urllib.parse.quote(NEGATIVE_PROMPT)
         image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model={poll_model}&negative={encoded_negative}&nologo=true"
         
-        logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | Model: {poll_model} | Seed: {seed}")
+        logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | SDXL/AI Model: {poll_model} ({request.model}) | Seed: {seed}")
         
         return {
             "status": "success",
