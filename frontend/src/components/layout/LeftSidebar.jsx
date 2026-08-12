@@ -239,6 +239,40 @@ function LeftSidebar() {
       }, {crossOrigin:'anonymous'})
   }
 
+  const addLogoToCanvas = (url, brandName) => {
+      const canvas = window.fabricCanvas
+      if (!canvas) return
+      
+      const absoluteUrl = getAbsoluteUrl(url)
+      
+      fabric.Image.fromURL(absoluteUrl, (img) => {
+          if(!img) return
+          img.scaleToWidth(320)
+          img.set({left: 540, top: 850, originX:'center', originY:'center'})
+          canvas.add(img)
+          
+          if (brandName && brandName.trim()) {
+            const t = new fabric.IText(brandName.trim(), { 
+                left: 540, 
+                top: 1050, 
+                originX: 'center', 
+                originY: 'center',
+                fontSize: 48, 
+                fontWeight: 'bold',
+                fill: '#0f172a',
+                fontFamily: 'Inter, sans-serif',
+                textAlign: 'center'
+            })
+            canvas.add(t)
+            canvas.setActiveObject(t)
+          } else {
+            canvas.setActiveObject(img)
+          }
+          
+          canvas.renderAll()
+      }, {crossOrigin:'anonymous'})
+  }
+
   const addText = (text, isHeadline) => {
       const canvas = window.fabricCanvas
       if (!canvas) return
@@ -483,30 +517,32 @@ function LeftSidebar() {
                  {logoError && <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-800">{logoError}</p>}
 
                  {generatedLogo && !logoLoading && (
-                   <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                      {logoImageData ? (
-                        <div className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 transition-colors duration-300">
-                          <img 
-                            src={logoImageData} 
-                            className="w-full" 
-                            alt="Generated Logo"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all cursor-pointer flex items-center justify-center"
-                               onClick={() => addImage(generatedLogo.originalUrl)}>
-                             <span className="opacity-0 group-hover:opacity-100 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-2 rounded-lg shadow-md transform scale-90 group-hover:scale-100 transition-all">
-                               Add to Canvas
-                             </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-full h-32 bg-slate-100 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center justify-center transition-colors duration-300">
-                          <div className="text-center">
-                            <div className="animate-spin h-6 w-6 border-2 border-slate-300 dark:border-slate-600 border-t-slate-900 dark:border-t-slate-100 rounded-full mx-auto mb-2"></div>
-                            <p className="text-xs text-slate-600 dark:text-slate-400">Loading image...</p>
-                          </div>
-                        </div>
-                      )}
-                   </div>
+                    <div className="pt-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                       {logoImageData ? (
+                         <>
+                           <div className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 transition-colors duration-300">
+                             <img 
+                               src={logoImageData} 
+                               className="w-full" 
+                               alt="Generated Logo"
+                             />
+                           </div>
+                           <button 
+                             onClick={() => addLogoToCanvas(generatedLogo.originalUrl, aiBrandName)}
+                             className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center space-x-1"
+                           >
+                             <span>✨ Add Logo & Brand Text to Canvas</span>
+                           </button>
+                         </>
+                       ) : (
+                         <div className="w-full h-32 bg-slate-100 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center justify-center transition-colors duration-300">
+                           <div className="text-center">
+                             <div className="animate-spin h-6 w-6 border-2 border-slate-300 dark:border-slate-600 border-t-slate-900 dark:border-t-slate-100 rounded-full mx-auto mb-2"></div>
+                             <p className="text-xs text-slate-600 dark:text-slate-400">Loading image...</p>
+                           </div>
+                         </div>
+                       )}
+                    </div>
                  )}
                </div>
              </div>

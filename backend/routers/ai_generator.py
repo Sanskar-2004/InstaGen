@@ -244,16 +244,16 @@ Return ONLY the prompt."""
         
         # Step 2: Fallback to pre-optimized prompt if Gemini unavailable/failed
         if not optimized_prompt:
-            optimized_prompt = f"professional {style_names.lower()} logo for {request.brand_name}, vector art, {style_keywords}, minimalist, clean design, text included"
+            optimized_prompt = f"Professional high resolution logo design for brand '{request.brand_name}', modern {style_names.lower()} style emblem icon, clear typography text spelling '{request.brand_name}', {style_keywords}, vector graphic, minimalist design"
             logger.info(f"📝 Using optimized fallback prompt (no API call)")
         
-        # Step 3: Generate image URL using Pollinations.ai (reliable, no quota limits)
+        # Step 3: Generate image URL using Pollinations.ai with Flux model
         seed = random.randint(1, 999999999)
         
         # Build Pollinations URL with optimized prompt
         import urllib.parse
         encoded_prompt = urllib.parse.quote(optimized_prompt)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model=turbo"
+        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&model=flux"
         
         logger.info(f"✅ LOGO URL GENERATED: {request.brand_name} | Styles: {style_names} | Seed: {seed}")
         

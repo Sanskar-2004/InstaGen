@@ -153,12 +153,12 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     console.warn('[API] Backend generate-logo unavailable or failed, using client-side Pollinations.ai fallback:', err.message)
   }
   
-  // Client-side fallback via Pollinations.ai directly
+  // Client-side fallback via Pollinations.ai directly (using flux model for superior text rendering)
   const styleKeywords = selectedStyles.join(', ')
-  const prompt = `professional ${styleKeywords.toLowerCase()} logo for ${brand_name}, vector art, minimalist, clean design, text included`
+  const prompt = `Professional high resolution logo design for brand '${brand_name}', modern ${styleKeywords.toLowerCase()} style emblem icon, clear typography text spelling '${brand_name}', vector graphic, minimalist design`
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=turbo`
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=flux`
   
   return {
     status: 'success',
