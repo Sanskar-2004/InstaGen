@@ -487,17 +487,16 @@ function LeftSidebar() {
                
                <div className="space-y-3">
                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">⚡ Free AI Model</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">🌸 Free AI Model Engine</label>
                     <select 
                       value={selectedModel} 
                       onChange={(e) => setSelectedModel(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 transition-colors"
                     >
-                      <option value="hf-flux">🤗 HuggingFace FLUX.1 (Recommended)</option>
-                      <option value="sdxl">⚡ Stable Diffusion XL (High-Res 3D)</option>
-                      <option value="imagen">🎨 Google Imagen 3 (Photorealistic)</option>
+                      <option value="pollinations">🌸 Pollinations FLUX.1 Engine (Recommended)</option>
+                      <option value="sdxl">⚡ Pollinations SDXL Turbo (High-Res 3D)</option>
+                      <option value="imagen">🎨 Pollinations Flux Realism (Photorealistic)</option>
                       <option value="vector">💎 Vector Monogram Engine (100% Brand Letters)</option>
-                      <option value="pollinations">🌸 Pollinations 3D Engine</option>
                     </select>
                   </div>
                  

@@ -502,7 +502,7 @@ function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 
-export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', model = 'hf-flux' }) => {
+export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style = 'Modern', model = 'pollinations' }) => {
   const selectedStyles = Array.isArray(styles) && styles.length > 0 ? styles : [style]
   const prompt = buildStructuredLogoPrompt(brand_name, selectedStyles)
 
@@ -520,7 +520,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     }
   }
 
-  // Option 2: Try Backend API (Handles Gemini Imagen 3 / Server-side AI models)
+  // Option 2: Try Backend API (Handles Server-side Pollinations / Gemini models)
   const endpointUrl = `${API_BASE_URL}/api/ai/generate-logo`
   try {
     const res = await axios.post(endpointUrl, {
@@ -530,16 +530,16 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
       model,
       prompt,
       negative_prompt: NEGATIVE_PROMPT
-    }, { timeout: 12000 })
+    }, { timeout: 8000 })
     
     if (res.data && res.data.url) {
       return res.data
     }
   } catch (err) {
-    console.warn('[API] Backend generate-logo unavailable, using multi-provider client fallback:', err.message)
+    console.warn('[API] Backend generate-logo unavailable, using client Pollinations AI engine:', err.message)
   }
 
-  // Option 3: Direct Multi-Provider Fallbacks with Negative Prompt Encoding
+  // Option 3: Direct Pollinations AI Engine (FLUX.1, SDXL, Flux-Realism)
   const seed = Math.floor(Math.random() * 999999999)
   const encodedPrompt = encodeURIComponent(prompt)
   const encodedNegative = encodeURIComponent(NEGATIVE_PROMPT)
@@ -547,7 +547,7 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
   let targetModelParam = "flux"
   if (model === 'sdxl') targetModelParam = "turbo"
   if (model === 'imagen') targetModelParam = "flux-realism"
-  if (model === 'pollinations') targetModelParam = "unity"
+  if (model === 'pollinations' || model === 'flux' || model === 'hf-flux') targetModelParam = "flux"
 
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&model=${targetModelParam}&negative=${encodedNegative}&nologo=true`
   
@@ -557,9 +557,9 @@ export const generateLogoApi = async ({ brand_name, styles = ['Modern'], style =
     brand_name,
     styles: selectedStyles,
     style: selectedStyles[0],
-    model,
+    model: targetModelParam,
     seed,
-    mode: 'multi_provider_ai'
+    mode: 'pollinations_ai'
   }
 }
 
