@@ -58,6 +58,8 @@ STYLE_MAP = {
     "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette",
 }
 
+
+
 # --- CATEGORIZED STYLE SYSTEM ---
 STYLE_CATEGORIES = {
     "Modern": {"form": "minimalist geometric", "technique": "flat vector design", "mood": "sleek modern"},
@@ -84,8 +86,8 @@ def build_categorized_style_description(selected_styles):
     return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
 
 def build_structured_logo_prompt(brand_name, selected_styles):
-    style_keywords = ", ".join([STYLE_MAP.get(s, STYLE_MAP["Modern"]) for s in selected_styles])
-    return f'Vector logo emblem of letters "{brand_name}", style: {style_keywords}, minimal icon mark, clean vector art'
+    style_desc = build_categorized_style_description(selected_styles)
+    return f'Vector logo emblem of letters "{brand_name}", style: {style_desc}, minimal icon mark, clean vector art'
 
 NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
 

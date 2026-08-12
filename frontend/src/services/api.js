@@ -444,6 +444,8 @@ export const generateVectorMonogramLogo = (brandName, styles = ['Modern']) => {
   })
 }
 
+
+
 // --- CATEGORIZED STYLE MIXING SYSTEM ---
 const STYLE_CATEGORIES = {
   "Modern": { form: "minimalist geometric", technique: "flat vector design", mood: "sleek modern" },
@@ -478,8 +480,8 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
 }
 
 function buildStructuredLogoPrompt(brand_name, selectedStyles = ['Modern']) {
-  const styleKeywords = selectedStyles.map(s => STYLE_MAP[s] || STYLE_MAP["Modern"]).join(', ')
-  return `Vector logo emblem of letters "${brand_name}", style: ${styleKeywords}, minimal icon mark, clean vector art`
+  const styleDescriptions = buildCategorizedStyleDescription(selectedStyles)
+  return `Vector logo emblem of letters "${brand_name}", style: ${styleDescriptions}, minimal icon mark, clean vector art`
 }
 
 const NEGATIVE_PROMPT = "text, tagline, watermark, photo, realistic, mockup, multiple logos, cluttered, low quality, blurry, extra letters, subtext"
