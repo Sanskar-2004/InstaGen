@@ -144,35 +144,38 @@ FALLBACK_CTAS = [
 @router.post("/generate-text")
 async def generate_ad_copy(request: AdCopyRequest):
     """
-    Generate Ad Copy with random variation seed.
-    
-    Key feature: Adds a random number to the prompt so the AI treats
-    every request as brand new, even for identical inputs.
-    This prevents caching and ensures fresh variations.
+    Generate Strategic Brand-Aware Ad Copy with Gemini AI & Brand Essence Analysis.
+    Analyzes the product/brand identity and returns high-converting copy.
     """
-    
-    # 1. FORCE VARIATION: Add random seed to prompt
-    # This tricks the AI into generating new results every time
     variation_seed = random.randint(1, 100000)
     
-    system_prompt = """You are a Senior Copywriter expert at Instagram ads.
-Return ONLY valid JSON with no markdown blocks:
-{"headline": "max 7 words", "body": "max 30 words", "cta": "call to action"}"""
+    system_prompt = """You are an elite Senior Brand Strategist and Direct-Response Copywriter.
+Analyze the brand/product identity and write high-converting Instagram ad copy.
+Return ONLY valid JSON with no markdown formatting:
+{
+  "brand_analysis": "Concise 1-sentence insight on the brand identity and market position",
+  "headline": "High-converting hook headline, max 7 words with emoji",
+  "body": "Persuasive benefit-driven copy addressing customer desire, max 30 words",
+  "cta": "Action-oriented CTA button text",
+  "hashtags": "#Brand #Product #Category #Trending"
+}"""
 
-    user_prompt = f"""Write Instagram ad copy (Variation #{variation_seed}):
-Product: {request.product_name}
-Description: {request.description if request.description else 'Premium product'}
-Tone: {request.tone}
+    user_prompt = f"""Analyze brand and generate Instagram ad copy (Variation #{variation_seed}):
+Brand/Product Name: {request.product_name}
+Description / Niche: {request.description if request.description else 'Premium product'}
+Target Tone: {request.tone}
 
-IMPORTANT: Generate something NEW and UNIQUE for variation #{variation_seed}.
-Return ONLY JSON, no code blocks."""
+Instructions:
+1. First analyze the brand's core value proposition and essence in brand_analysis.
+2. Write a captivating headline, persuasive body, call-to-action, and relevant hashtags.
+3. Return ONLY valid JSON."""
 
     payload = {
         "contents": [{"parts": [{"text": user_prompt}]}],
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "generationConfig": {
-            "temperature": 0.9,  # HIGH creativity to force variation
-            "maxOutputTokens": 500
+            "temperature": 0.85,
+            "maxOutputTokens": 600
         }
     }
     
@@ -181,14 +184,14 @@ Return ONLY JSON, no code blocks."""
         return _get_random_fallback_text(request)
     
     try:
-        response = requests.post(
-            f"{GEMINI_BASE_URL}?key={GEMINI_API_KEY}",
-            json=payload,
-            timeout=30
-        )
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                f"{GEMINI_IMAGE_URL}?key={GEMINI_API_KEY}",
+                json=payload
+            )
         
         if response.status_code != 200:
-            logger.warning(f"Gemini API error: {response.status_code}, using fallback")
+            logger.warning(f"Gemini API error ({response.status_code}), using fallback")
             return _get_random_fallback_text(request)
         
         result = response.json()
@@ -199,15 +202,16 @@ Return ONLY JSON, no code blocks."""
         
         generated_text = result["candidates"][0]["content"]["parts"][0]["text"]
         
-        # Try to parse JSON
         try:
             clean_text = generated_text.replace("```json", "").replace("```", "").strip()
             copy_data = json.loads(clean_text)
             return {
                 "status": "success",
-                "headline": copy_data.get("headline", ""),
-                "body": copy_data.get("body", ""),
-                "cta": copy_data.get("cta", ""),
+                "brand_analysis": copy_data.get("brand_analysis", f"Strategic {request.tone.lower()} positioning for {request.product_name}"),
+                "headline": copy_data.get("headline", f"Discover {request.product_name} 🔥"),
+                "body": copy_data.get("body", f"Experience premium performance with {request.product_name}."),
+                "cta": copy_data.get("cta", "Shop Now 🚀"),
+                "hashtags": copy_data.get("hashtags", f"#{request.product_name.replace(' ', '')} #Trending #MustHave"),
                 "mode": "gemini"
             }
         except json.JSONDecodeError as e:
@@ -215,7 +219,7 @@ Return ONLY JSON, no code blocks."""
             return _get_random_fallback_text(request)
         
     except Exception as e:
-        logger.warning(f"Gemini error: {str(e)}, using random fallback")
+        logger.warning(f"Gemini error ({str(e)}), using fallback")
         return _get_random_fallback_text(request)
 
 

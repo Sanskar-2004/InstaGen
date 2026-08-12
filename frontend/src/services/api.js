@@ -587,12 +587,16 @@ export const generateAdCopyApi = async ({ product_name, description = '', tone =
   const headline = FALLBACK_HEADLINES[seedIndex].replace('{product}', product_name).replace('{desc}', desc)
   const body = FALLBACK_BODIES[seedIndex % FALLBACK_BODIES.length].replace('{product}', product_name).replace('{desc}', desc)
   const cta = FALLBACK_CTAS[seedIndex % FALLBACK_CTAS.length]
+  const hashtags = `#${product_name.replace(/\s+/g, '')} #Trending #MustHave #InstaGen`
+  const brand_analysis = `Strategic ${tone.toLowerCase()} brand positioning for ${product_name}`
   
   return {
     status: 'success',
+    brand_analysis,
     headline,
     body,
     cta,
+    hashtags,
     mode: 'client_fallback'
   }
 }

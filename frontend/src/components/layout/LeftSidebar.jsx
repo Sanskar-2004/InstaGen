@@ -602,18 +602,37 @@ function LeftSidebar() {
                  {copyError && <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-800">{copyError}</p>}
 
                  {generatedCopy && !copyLoading && (
-                   <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                     <div onClick={()=>addText(generatedCopy.headline, true)} 
-                          className="group p-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Headline</span>
-                        <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-slate-700 dark:group-hover:text-slate-200">{generatedCopy.headline}</p>
-                     </div>
-                     <div onClick={()=>addText(generatedCopy.body, false)} 
-                          className="group p-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Body</span>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 leading-relaxed">{generatedCopy.body}</p>
-                     </div>
-                   </div>
+                    <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      {generatedCopy.brand_analysis && (
+                        <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-lg">
+                          <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider block mb-0.5">🧠 Brand Insight</span>
+                          <p className="text-[11px] text-indigo-900 dark:text-indigo-200 leading-tight">{generatedCopy.brand_analysis}</p>
+                        </div>
+                      )}
+                      <div onClick={()=>addText(generatedCopy.headline, true)} 
+                           className="group p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
+                         <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Headline (Click to Add)</span>
+                         <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{generatedCopy.headline}</p>
+                      </div>
+                      <div onClick={()=>addText(generatedCopy.body, false)} 
+                           className="group p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
+                         <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Body Copy</span>
+                         <p className="text-xs text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 leading-relaxed">{generatedCopy.body}</p>
+                      </div>
+                      {generatedCopy.cta && (
+                        <div onClick={()=>addText(generatedCopy.cta, true)}
+                             className="group p-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">CTA Button</span>
+                          <span className="text-xs font-bold text-emerald-900 dark:text-emerald-100">{generatedCopy.cta}</span>
+                        </div>
+                      )}
+                      {generatedCopy.hashtags && (
+                        <div onClick={()=>addText(generatedCopy.hashtags, false)}
+                             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                          <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">{generatedCopy.hashtags}</p>
+                        </div>
+                      )}
+                    </div>
                  )}
                </div>
              </div>
