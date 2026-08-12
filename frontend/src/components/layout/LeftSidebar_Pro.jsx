@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { fabric } from 'fabric'
+import { 
+  getAbsoluteUrl, 
+  generateLogoApi, 
+  generateAdCopyApi, 
+  uploadOriginalAssetApi, 
+  extractColorsApi 
+} from '../../services/api'
 
 function LeftSidebar() {
   const [activeTab, setActiveTab] = useState('uploads')
@@ -35,22 +42,16 @@ function LeftSidebar() {
     formData.append('file', file)
 
     try {
-      const res = await axios.post('http://localhost:8000/api/assets/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      setAssets(prev => [...prev, res.data])
+      const res = await uploadOriginalAssetApi(file)
+      setAssets(prev => [...prev, res])
 
-      const colorFormData = new FormData()
-      colorFormData.append('file', file)
-      const colorRes = await axios.post('http://localhost:8000/api/assets/extract-colors', colorFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      if (colorRes.data.colors) {
-        setPaletteColors(colorRes.data.colors)
+      const colorRes = await extractColorsApi(file)
+      if (colorRes && colorRes.colors) {
+        setPaletteColors(colorRes.colors)
       }
     } catch (e) {
       console.error(e)
-      alert("Upload Failed. Check Backend Terminal for errors.")
+      alert("Upload error: " + (e.message || "Failed to upload asset"))
     }
     setIsUploading(false)
   }
@@ -95,12 +96,12 @@ function LeftSidebar() {
     setCopyError('')
 
     try {
-      const res = await axios.post('http://localhost:8000/api/ai/generate-text', {
+      const res = await generateAdCopyApi({
         product_name: aiProduct,
         description: productDesc,
         tone: aiTone
       })
-      setGeneratedCopy(res.data)
+      setGeneratedCopy(res)
     } catch (e) {
       const errorMsg = "AI Error: " + (e.response?.data?.detail || e.message)
       setCopyError(errorMsg)
@@ -120,11 +121,11 @@ function LeftSidebar() {
     setLogoError('')
 
     try {
-      const res = await axios.post('http://localhost:8000/api/ai/generate-logo', {
+      const res = await generateLogoApi({
         brand_name: aiBrandName,
         style: aiLogoStyle
       })
-      const uniqueUrl = res.data.url + "&t=" + new Date().getTime()
+      const uniqueUrl = res.url + (res.url.includes('?') ? '&t=' : '?t=') + new Date().getTime()
       setGeneratedLogo({ url: uniqueUrl })
     } catch (e) {
       const errorMsg = "AI Error: " + (e.response?.data?.detail || e.message)
@@ -151,7 +152,7 @@ function LeftSidebar() {
   const addImage = (url) => {
     const canvas = window.fabricCanvas
     if (!canvas) return
-    const absoluteUrl = url.startsWith('http') ? url : `http://localhost:8000${url}`
+    const absoluteUrl = getAbsoluteUrl(url)
     fabric.Image.fromURL(absoluteUrl, (img) => {
       if (!img) return
       img.scaleToWidth(400)

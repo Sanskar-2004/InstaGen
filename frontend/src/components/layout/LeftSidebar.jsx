@@ -1,6 +1,15 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { fabric } from 'fabric'
+import { 
+  getAbsoluteUrl, 
+  generateLogoApi, 
+  generateAdCopyApi, 
+  uploadOriginalAssetApi, 
+  removeBackgroundApi, 
+  extractColorsApi, 
+  proxyImageApi 
+} from '../../services/api'
 
 function LeftSidebar() {
   // --- ASSET STATE ---
@@ -74,15 +83,13 @@ function LeftSidebar() {
         
         // Fallback: use proxy endpoint
         console.log('Using proxy endpoint...')
-        const proxyRes = await axios.post('http://localhost:8000/api/proxy-image', {
-          url: generatedLogo.url
-        })
+        const proxyRes = await proxyImageApi(generatedLogo.url)
         
-        if (proxyRes.data.status === 'success') {
-          setLogoImageData(proxyRes.data.data)
+        if (proxyRes.status === 'success') {
+          setLogoImageData(proxyRes.data)
           console.log('Logo loaded via proxy')
         } else {
-          throw new Error(proxyRes.data.detail)
+          throw new Error(proxyRes.detail || 'Proxy error')
         }
       } catch (e) {
         console.error('Logo loading error:', e.message)
@@ -104,17 +111,13 @@ function LeftSidebar() {
     if (!file) return
 
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
 
     try {
-        // Upload original image (without processing)
-        const res = await axios.post('http://localhost:8000/api/assets/upload-original', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        // Upload original image
+        const res = await uploadOriginalAssetApi(file)
         
-        const assetId = res.data.id || Date.now()
-        const originalUrl = res.data.url
+        const assetId = res.id || Date.now()
+        const originalUrl = res.url
         
         // Create original asset
         const originalAsset = { 
@@ -126,16 +129,11 @@ function LeftSidebar() {
         
         // Try to remove background
         try {
-          const bgFormData = new FormData()
-          bgFormData.append('file', file)
-          const bgRes = await axios.post('http://localhost:8000/api/assets/remove-background', bgFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          })
-          
-          if (bgRes.data.url) {
+          const bgRes = await removeBackgroundApi(file)
+          if (bgRes && bgRes.url) {
             const processedAsset = {
               id: `${assetId}_processed`,
-              url: bgRes.data.url,
+              url: bgRes.url,
               type: 'processed',
               originalId: `${assetId}_orig`
             }
@@ -146,16 +144,12 @@ function LeftSidebar() {
         }
         
         // Extract colors
-        const colorFormData = new FormData()
-        colorFormData.append('file', file)
-        const colorRes = await axios.post('http://localhost:8000/api/assets/extract-colors', colorFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        if (colorRes.data.colors) {
-          setPaletteColors(colorRes.data.colors)
+        const colorRes = await extractColorsApi(file)
+        if (colorRes && colorRes.colors) {
+          setPaletteColors(colorRes.colors)
         }
     } catch (e) { 
-        alert("Upload Failed. Check Backend Terminal.") 
+        alert("Upload Error: " + (e.message || "Failed to process asset")) 
     }
     setIsUploading(false)
   }
@@ -195,13 +189,12 @@ function LeftSidebar() {
     setLogoError('')
 
     try {
-        // Send selected styles array to backend
-        const res = await axios.post('http://localhost:8000/api/ai/generate-logo', {
+        const res = await generateLogoApi({
             brand_name: aiBrandName, 
-            styles: selectedStyles,  // Send array of selected styles for mix & match
-            style: selectedStyles[0]  // Keep single style for backward compatibility
+            styles: selectedStyles,
+            style: selectedStyles[0]
         })
-        setGeneratedLogo({ url: res.data.url, originalUrl: res.data.url })
+        setGeneratedLogo({ url: res.url, originalUrl: res.url })
     } catch (e) { 
         setLogoError("AI Error: " + (e.response?.data?.detail || e.message)) 
     }
@@ -217,10 +210,12 @@ function LeftSidebar() {
     setCopyError('')
     
     try {
-        const res = await axios.post('http://localhost:8000/api/ai/generate-text', {
-            product_name: aiProduct, description: productDesc, tone: aiTone
+        const res = await generateAdCopyApi({
+            product_name: aiProduct, 
+            description: productDesc, 
+            tone: aiTone
         })
-        setGeneratedCopy(res.data)
+        setGeneratedCopy(res)
     } catch (e) { 
         setCopyError("AI Error: " + (e.response?.data?.detail || e.message)) 
     }
@@ -232,7 +227,7 @@ function LeftSidebar() {
       const canvas = window.fabricCanvas
       if (!canvas) return
       
-      const absoluteUrl = url.startsWith('http') ? url : `http://localhost:8000${url}`
+      const absoluteUrl = getAbsoluteUrl(url)
       
       fabric.Image.fromURL(absoluteUrl, (img) => {
           if(!img) return
@@ -386,15 +381,15 @@ function LeftSidebar() {
                                <div className="group relative rounded-lg overflow-hidden bg-slate-100 shadow-sm border border-slate-200 hover:shadow-md transition-all aspect-video"
                                     draggable="true"
                                     onDragStart={(e) => {
-                                      const imageUrl = group.original.url.startsWith('http') ? group.original.url : `http://localhost:8000${group.original.url}`
+                                      const imageUrl = getAbsoluteUrl(group.original.url)
                                       e.dataTransfer.setData('assetURL', imageUrl)
                                       e.dataTransfer.setData('imageUrl', imageUrl)
                                       e.dataTransfer.setData('category', productCategory)
                                       console.log('[DRAG START] Category being passed:', productCategory)
                                     }}>
-                                 <img src={group.original.url.startsWith('http') ? group.original.url : `http://localhost:8000${group.original.url}`} className="w-full h-full object-cover" alt="original" />
+                                 <img src={getAbsoluteUrl(group.original.url)} className="w-full h-full object-cover" alt="original" />
                                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
-                                      onClick={() => addImage(group.original.url.startsWith('http') ? group.original.url : `http://localhost:8000${group.original.url}`)}>
+                                      onClick={() => addImage(group.original.url)}>
                                    <div className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
                                      <span className="text-indigo-600 font-bold leading-none">+</span>
                                    </div>
@@ -410,15 +405,15 @@ function LeftSidebar() {
                                <div className="group relative rounded-lg overflow-hidden bg-slate-100 shadow-sm border border-slate-200 hover:shadow-md transition-all aspect-video"
                                     draggable="true"
                                     onDragStart={(e) => {
-                                      const imageUrl = group.processed.url.startsWith('http') ? group.processed.url : `http://localhost:8000${group.processed.url}`
+                                      const imageUrl = getAbsoluteUrl(group.processed.url)
                                       e.dataTransfer.setData('assetURL', imageUrl)
                                       e.dataTransfer.setData('imageUrl', imageUrl)
                                       e.dataTransfer.setData('category', productCategory)
                                       console.log('[DRAG START] Category being passed:', productCategory)
                                     }}>
-                                 <img src={group.processed.url.startsWith('http') ? group.processed.url : `http://localhost:8000${group.processed.url}`} className="w-full h-full object-cover" alt="processed" />
+                                 <img src={getAbsoluteUrl(group.processed.url)} className="w-full h-full object-cover" alt="processed" />
                                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
-                                      onClick={() => addImage(group.processed.url.startsWith('http') ? group.processed.url : `http://localhost:8000${group.processed.url}`)}>
+                                      onClick={() => addImage(group.processed.url)}>
                                    <div className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
                                      <span className="text-indigo-600 font-bold leading-none">+</span>
                                    </div>

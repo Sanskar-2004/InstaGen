@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { fabric } from 'fabric'
+import { 
+  API_BASE_URL, 
+  generateLogoApi, 
+  generateAdCopyApi, 
+  uploadOriginalAssetApi 
+} from '../../services/api'
 
 function LeftSidebar() {
   const [activeTab, setActiveTab] = useState('uploads') // 'uploads' | 'ai'
@@ -22,7 +28,8 @@ function LeftSidebar() {
 
   const fetchAssets = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/assets')
+      if (!API_BASE_URL) return
+      const res = await axios.get(`${API_BASE_URL}/api/assets`)
       setAssets(res.data)
     } catch (e) { console.error(e) }
   }
@@ -30,14 +37,10 @@ function LeftSidebar() {
   const handleFileUpload = async (e) => {
     if (!e.target.files[0]) return
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append('file', e.target.files[0])
     try {
-        await axios.post('http://localhost:8000/api/assets/upload-asset', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await uploadOriginalAssetApi(e.target.files[0])
         fetchAssets()
-    } catch (e) { alert("Upload error") }
+    } catch (e) { alert("Upload error: " + e.message) }
     setIsUploading(false)
   }
 
@@ -47,10 +50,10 @@ function LeftSidebar() {
     if (!brandName) return
     setAiLoading(true)
     try {
-        const res = await axios.post('http://localhost:8000/api/ai/generate-logo', {
+        const res = await generateLogoApi({
             brand_name: brandName, style: logoStyle
         })
-        setGeneratedLogo(res.data.url)
+        setGeneratedLogo(res.url)
     } catch (e) { alert("AI Error: " + e.message) }
     setAiLoading(false)
   }
@@ -59,10 +62,10 @@ function LeftSidebar() {
     if (!productName) return
     setAiLoading(true)
     try {
-        const res = await axios.post('http://localhost:8000/api/ai/generate-text', {
+        const res = await generateAdCopyApi({
             product_name: productName, description: productDesc, tone: adTone
         })
-        setGeneratedText(res.data)
+        setGeneratedText(res)
     } catch (e) { alert("AI Error: " + e.message) }
     setAiLoading(false)
   }
