@@ -224,15 +224,7 @@ const STYLE_MAP = {
   "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, hand-drawn, sustainable",
   "Abstract": "abstract shapes, expressionist, fragmented forms, asymmetric, bold color blocks",
   "3D": "three-dimensional, realistic shading, glossy, metallic, depth, sculptural, isometric",
-  "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette",
-  "Elegant": "refined ornamental curves, subtle metallic linework, sophisticated premium",
-  "Geometric": "sharp polygon structure, sacred geometry linework, precise architectural",
-  "Gradient": "smooth flowing vector form, multi-color spectrum gradient, vibrant trendy",
-  "Graffiti": "bold urban typography, street art spray linework, edgy rebellious",
-  "Monochrome": "high contrast silhouette, single color negative space, timeless stark",
-  "Watercolor": "soft fluid brushstroke, artistic watercolor wash, creative handcrafted",
-  "Retro": "classic 80s synthwave geometry, chrome reflection linework, nostalgic energetic",
-  "Nature": "organic leaf icon, botanical eco linework, serene eco-friendly"
+  "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette"
 }
 
 // --- COMPOUND STYLE FUSION ENGINE ---
@@ -465,15 +457,7 @@ const STYLE_CATEGORIES = {
   "Organic": { form: "flowing botanical curve", technique: "hand-drawn texture", mood: "natural sustainable" },
   "Abstract": { form: "abstract expressionist", technique: "fragmented color blocks", mood: "creative artistic" },
   "3D": { form: "dimensional sculptural", technique: "3D realistic shading depth", mood: "polished contemporary" },
-  "Sports": { form: "dynamic angular shield", technique: "motion streak accents", mood: "bold energetic" },
-  "Elegant": { form: "refined ornamental curves", technique: "subtle metallic linework", mood: "sophisticated premium" },
-  "Geometric": { form: "sharp polygon structure", technique: "sacred geometry linework", mood: "precise architectural" },
-  "Gradient": { form: "smooth flowing vector form", technique: "multi-color spectrum gradient", mood: "vibrant trendy" },
-  "Graffiti": { form: "bold urban typography", technique: "street art spray linework", mood: "edgy rebellious" },
-  "Monochrome": { form: "high contrast silhouette", technique: "single color negative space", mood: "timeless stark" },
-  "Watercolor": { form: "soft fluid brushstroke", technique: "artistic watercolor wash", mood: "creative handcrafted" },
-  "Retro": { form: "classic 80s synthwave geometry", technique: "chrome reflection linework", mood: "nostalgic energetic" },
-  "Nature": { form: "organic leaf icon", technique: "botanical eco linework", mood: "serene eco-friendly" }
+  "Sports": { form: "dynamic angular shield", technique: "motion streak accents", mood: "bold energetic" }
 }
 
 function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
@@ -481,16 +465,20 @@ function buildCategorizedStyleDescription(selectedStyles = ['Modern']) {
   const techniques = new Set()
   const moods = new Set()
 
-  selectedStyles.forEach(style => {
+  const safeStyles = Array.isArray(selectedStyles) && selectedStyles.length > 0 ? selectedStyles : ['Modern']
+
+  safeStyles.forEach(style => {
     const cat = STYLE_CATEGORIES[style] || STYLE_CATEGORIES["Modern"]
-    forms.add(cat.form)
-    techniques.add(cat.technique)
-    moods.add(cat.mood)
+    if (cat) {
+      if (cat.form) forms.add(cat.form)
+      if (cat.technique) techniques.add(cat.technique)
+      if (cat.mood) moods.add(cat.mood)
+    }
   })
 
-  const formStr = Array.from(forms).join(' and ')
-  const techniqueStr = Array.from(techniques).join(' and ')
-  const moodStr = Array.from(moods).join(' and ')
+  const formStr = forms.size > 0 ? Array.from(forms).join(' and ') : 'minimalist geometric'
+  const techniqueStr = techniques.size > 0 ? Array.from(techniques).join(' and ') : 'flat vector design'
+  const moodStr = moods.size > 0 ? Array.from(moods).join(' and ') : 'sleek modern'
 
   return `${formStr}, ${techniqueStr}, ${moodStr}`
 }

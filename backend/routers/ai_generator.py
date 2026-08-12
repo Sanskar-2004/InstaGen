@@ -56,15 +56,7 @@ STYLE_MAP = {
     "Organic": "natural, eco-friendly, flowing curves, earth tones, botanical, hand-drawn, sustainable",
     "Abstract": "abstract shapes, expressionist, fragmented forms, asymmetric, bold color blocks",
     "3D": "three-dimensional, realistic shading, glossy, metallic, depth, sculptural, isometric",
-    "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette",
-    "Elegant": "refined ornamental curves, subtle metallic linework, sophisticated premium",
-    "Geometric": "sharp polygon structure, sacred geometry linework, precise architectural",
-    "Gradient": "smooth flowing vector form, multi-color spectrum gradient, vibrant trendy",
-    "Graffiti": "bold urban typography, street art spray linework, edgy rebellious",
-    "Monochrome": "high contrast silhouette, single color negative space, timeless stark",
-    "Watercolor": "soft fluid brushstroke, artistic watercolor wash, creative handcrafted",
-    "Retro": "classic 80s synthwave geometry, chrome reflection linework, nostalgic energetic",
-    "Nature": "organic leaf icon, botanical eco linework, serene eco-friendly"
+    "Sports": "athletic, dynamic motion lines, powerful, bold, competitive, aerodynamic, strong silhouette"
 }
 
 
@@ -80,27 +72,24 @@ STYLE_CATEGORIES = {
     "Organic": {"form": "flowing botanical curve", "technique": "hand-drawn texture", "mood": "natural sustainable"},
     "Abstract": {"form": "abstract expressionist", "technique": "fragmented color blocks", "mood": "creative artistic"},
     "3D": {"form": "dimensional sculptural", "technique": "3D realistic shading depth", "mood": "polished contemporary"},
-    "Sports": {"form": "dynamic angular shield", "technique": "motion streak accents", "mood": "bold energetic"},
-    "Elegant": {"form": "refined ornamental curves", "technique": "subtle metallic linework", "mood": "sophisticated premium"},
-    "Geometric": {"form": "sharp polygon structure", "technique": "sacred geometry linework", "mood": "precise architectural"},
-    "Gradient": {"form": "smooth flowing vector form", "technique": "multi-color spectrum gradient", "mood": "vibrant trendy"},
-    "Graffiti": {"form": "bold urban typography", "technique": "street art spray linework", "mood": "edgy rebellious"},
-    "Monochrome": {"form": "high contrast silhouette", "technique": "single color negative space", "mood": "timeless stark"},
-    "Watercolor": {"form": "soft fluid brushstroke", "technique": "artistic watercolor wash", "mood": "creative handcrafted"},
-    "Retro": {"form": "classic 80s synthwave geometry", "technique": "chrome reflection linework", "mood": "nostalgic energetic"},
-    "Nature": {"form": "organic leaf icon", "technique": "botanical eco linework", "mood": "serene eco-friendly"}
+    "Sports": {"form": "dynamic angular shield", "technique": "motion streak accents", "mood": "bold energetic"}
 }
 
 def build_categorized_style_description(selected_styles):
     forms = set()
     techniques = set()
     moods = set()
-    for s in selected_styles:
+    safe_styles = selected_styles if isinstance(selected_styles, list) and len(selected_styles) > 0 else ["Modern"]
+    for s in safe_styles:
         cat = STYLE_CATEGORIES.get(s, STYLE_CATEGORIES["Modern"])
-        forms.add(cat["form"])
-        techniques.add(cat["technique"])
-        moods.add(cat["mood"])
-    return f"{' and '.join(forms)}, {' and '.join(techniques)}, {' and '.join(moods)}"
+        if cat:
+            if "form" in cat: forms.add(cat["form"])
+            if "technique" in cat: techniques.add(cat["technique"])
+            if "mood" in cat: moods.add(cat["mood"])
+    form_str = " and ".join(forms) if forms else "minimalist geometric"
+    tech_str = " and ".join(techniques) if techniques else "flat vector design"
+    mood_str = " and ".join(moods) if moods else "sleek modern"
+    return f"{form_str}, {tech_str}, {mood_str}"
 
 def build_structured_logo_prompt(brand_name, selected_styles, custom_prompt=""):
     style_desc = build_categorized_style_description(selected_styles)
