@@ -148,76 +148,6 @@ function CanvasEditor() {
     }
   }
 
-  const addSafeZonesOverlay = (canvas) => {
-    if (!canvas) return
-    
-    console.log('🎯 Adding Social Safe Zones overlay')
-    
-    // Safe zone rules for 9x16 (1080x1920):
-    // - 200px from top (unsafe)
-    // - 250px from bottom (unsafe)
-    const SAFE_TOP = 200
-    const SAFE_BOTTOM = 250
-    const SAFE_HEIGHT = CANVAS_HEIGHT - SAFE_TOP - SAFE_BOTTOM
-    
-    // Create top unsafe zone (semi-transparent red overlay)
-    const topOverlay = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: CANVAS_WIDTH,
-      height: SAFE_TOP,
-      fill: '#ff0000',
-      opacity: 0.15,
-      selectable: false,
-      evented: false,
-      name: 'safe-zone-top'
-    })
-    
-    // Create bottom unsafe zone (semi-transparent red overlay)
-    const bottomOverlay = new fabric.Rect({
-      left: 0,
-      top: SAFE_TOP + SAFE_HEIGHT,
-      width: CANVAS_WIDTH,
-      height: SAFE_BOTTOM,
-      fill: '#ff0000',
-      opacity: 0.15,
-      selectable: false,
-      evented: false,
-      name: 'safe-zone-bottom'
-    })
-    
-    // Add overlays to canvas (these go behind content)
-    canvas.add(topOverlay)
-    canvas.add(bottomOverlay)
-    
-    // Send to back so content appears on top
-    canvas.sendToBack(topOverlay)
-    canvas.sendToBack(bottomOverlay)
-    
-    canvas.renderAll()
-    console.log('✅ Safe zones added: 200px top, 250px bottom, 1470px safe height')
-  }
-
-  const toggleSafeZones = () => {
-    const canvas = window.fabricCanvas
-    if (!canvas) return
-    
-    const newState = !showSafeZones
-    setShowSafeZones(newState)
-    
-    // Find and remove/add safe zone overlays
-    const overlays = canvas.getObjects().filter(obj => obj.name && obj.name.startsWith('safe-zone'))
-    
-    if (newState) {
-      // Add zones
-      addSafeZonesOverlay(canvas)
-    } else {
-      // Remove zones
-      overlays.forEach(overlay => canvas.remove(overlay))
-      canvas.renderAll()
-    }
-  }
-
   const addRectangle = () => {
     console.log('▭ Add Rect clicked')
     const canvas = window.fabricCanvas
@@ -424,18 +354,6 @@ function CanvasEditor() {
           onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
         >
           + Circle
-        </button>
-        
-        <div style={{borderLeft: `1px solid ${isDarkMode ? '#30363d' : '#d1d5db'}`, marginLeft: '8px', marginRight: '8px', height: '24px'}}></div>
-        
-        <button 
-          onClick={toggleSafeZones}
-          style={{...buttonStyle, backgroundColor: showSafeZones ? '#f59e0b' : '#6b7280'}}
-          onMouseOver={(e) => e.target.style.opacity = '0.9'}
-          onMouseOut={(e) => e.target.style.opacity = '1'}
-          title="Toggle Social Safe Zones (9x16)"
-        >
-          {showSafeZones ? '🎯 Safe Zones ON' : '🎯 Safe Zones OFF'}
         </button>
         
         <div style={{borderLeft: `1px solid ${isDarkMode ? '#30363d' : '#d1d5db'}`, marginLeft: '8px', marginRight: '8px', height: '24px'}}></div>

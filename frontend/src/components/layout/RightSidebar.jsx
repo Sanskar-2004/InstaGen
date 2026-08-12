@@ -191,6 +191,17 @@ export default function RightSidebar() {
     updateLayers()
   }
 
+  const deleteLayer = (obj) => {
+    const canvas = window.fabricCanvas
+    if (!canvas || !obj) return
+    canvas.remove(obj)
+    if (canvas.getActiveObject() === obj) {
+      canvas.discardActiveObject()
+    }
+    canvas.renderAll()
+    updateLayers()
+  }
+
   const selectLayer = (obj) => {
     const canvas = window.fabricCanvas
     canvas.setActiveObject(obj)
@@ -425,6 +436,18 @@ export default function RightSidebar() {
                                 ) : (
                                   <span className="text-sm opacity-40">🔓</span>
                                 )}
+                              </button>
+
+                              {/* Delete Layer */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  deleteLayer(layer.object)
+                                }}
+                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-500 rounded transition-colors"
+                                title="Delete layer"
+                              >
+                                <span className="text-sm">🗑️</span>
                               </button>
                             </div>
                           </div>
